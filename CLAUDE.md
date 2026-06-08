@@ -49,13 +49,20 @@ Antes de trabajar en cualquier módulo, leé el archivo de fase correspondiente.
 Fase 1 — Producto y arquitectura
 
 ### Completado
-- [ ] nada aún
+- [x] Proyecto Next.js 14 con App Router, TypeScript estricto, Tailwind CSS (puerto 8000)
+- [x] shadcn/ui configurado
+- [x] Monorepo Turborepo con packages/database, packages/ui, packages/config
+- [x] Migración SQL inicial con 11 tablas, índices, constraints y RLS habilitado
+- [x] Schema Drizzle con tipos TypeScript inferidos y constantes de enums
+- [x] Variables de entorno tipadas con zod en lib/env.ts
+- [x] Supabase local corriendo con migración aplicada
+- [x] README con instrucciones de setup completas
 
 ### En progreso
-- [ ] setup inicial del repositorio
+- [ ] Fase 2 — Núcleo del sistema de turnos
 
 ### Próximo paso
-Crear el proyecto Next.js con la estructura base, configurar Supabase y crear la migración inicial con todas las tablas del modelo de datos.
+Motor de disponibilidad + API de bookings (ver docs/FASE_2_nucleo_turnos.md)
 
 ### Decisiones tomadas
 (actualizar a medida que se toman decisiones de arquitectura)
