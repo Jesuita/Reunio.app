@@ -12,6 +12,7 @@
     "typecheck": "turbo typecheck"
   },
   "devDependencies": {
+    "supabase": "^2.105.0",
     "turbo": "^2.9.16",
     "typescript": "^5"
   }
