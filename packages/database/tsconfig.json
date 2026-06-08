@@ -1,0 +1,12 @@
+{
+  "extends": "@reunio/config/tsconfig.base.json",
+  "compilerOptions": {
+    "target": "ESNext",
+    "module": "ESNext",
+    "moduleResolution": "Bundler",
+    "lib": ["ESNext"],
+    "outDir": "dist"
+  },
+  "include": ["src", "migrations"],
+  "exclude": ["node_modules", "dist"]
+}
