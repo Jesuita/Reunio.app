@@ -50,19 +50,27 @@ Fase 1 — Producto y arquitectura
 
 ### Completado
 - [x] Proyecto Next.js 14 con App Router, TypeScript estricto, Tailwind CSS (puerto 8000)
-- [x] shadcn/ui configurado
+- [x] shadcn/ui configurado (compatibilidad Tailwind v3 aplicada)
 - [x] Monorepo Turborepo con packages/database, packages/ui, packages/config
 - [x] Migración SQL inicial con 11 tablas, índices, constraints y RLS habilitado
 - [x] Schema Drizzle con tipos TypeScript inferidos y constantes de enums
 - [x] Variables de entorno tipadas con zod en lib/env.ts
 - [x] Supabase local corriendo con migración aplicada
 - [x] README con instrucciones de setup completas
+- [x] Motor de disponibilidad puro (lib/availability/engine.ts) con 9 tests pasando
+- [x] API routes: GET /api/availability, POST /api/bookings, GET+PATCH /api/bookings/[id]
+- [x] Página pública /{slug} con servicios agrupados por categoría
+- [x] Wizard de reserva 6 pasos (Zustand store + componentes client)
+- [x] Seed data: "El Corte Perfecto" con 3 staff, 5 servicios, horarios L-V y sábado
+- [x] Admin dashboard: /dashboard (métricas), /dashboard/services (CRUD), /dashboard/staff (horarios), /dashboard/calendar (Realtime)
+- [x] Server Actions con zod validation para servicios y staff
+- [x] lib/supabase/server.ts + client.ts helpers
 
 ### En progreso
-- [ ] Fase 2 — Núcleo del sistema de turnos
+- [ ] Bloque D — reschedule/cancel por JWT, lista de espera, Google Calendar sync
 
 ### Próximo paso
-Motor de disponibilidad + API de bookings (ver docs/FASE_2_nucleo_turnos.md)
+Bloque D: links JWT para autogestión, luego Fase 3 (panel admin completo)
 
 ### Decisiones tomadas
 (actualizar a medida que se toman decisiones de arquitectura)
