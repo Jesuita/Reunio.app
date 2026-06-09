@@ -1,7 +1,8 @@
 import Link from "next/link";
-import { Calendar, MessageCircle, CreditCard, BarChart2, ArrowRight, Check, Clock, Users, Zap } from "lucide-react";
+import { Calendar, MessageCircle, CreditCard, BarChart2, ArrowRight, Check, Clock, Users, Zap, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { PLANS } from "@/lib/plans";
+import { RUBRO_CONFIG } from "@/lib/rubros";
 
 export const metadata = {
   title: "Reunio — Agendamiento de turnos online para negocios LATAM",
@@ -24,6 +25,7 @@ function Navbar() {
           <Link href="#features" className="hover:text-foreground transition-colors">Funciones</Link>
           <Link href="#how" className="hover:text-foreground transition-colors">¿Cómo funciona?</Link>
           <Link href="/pricing" className="hover:text-foreground transition-colors">Precios</Link>
+          <Link href="/explorar" className="hover:text-foreground transition-colors">Explorar negocios</Link>
         </nav>
         <div className="flex items-center gap-3">
           <Link href="/login">
@@ -295,6 +297,76 @@ function SocialProof() {
   );
 }
 
+// ── Directory preview ──────────────────────────────────────────────────────
+
+const PREVIEW_CARDS = [
+  { name: "Barbería El Corte Perfecto", rubro: "Barbería",             city: "Buenos Aires", services: 5, fromPrice: 2500 },
+  { name: "Centro de Yoga & Bienestar", rubro: "Spa / Masajes",        city: "Rosario",      services: 8, fromPrice: 1800 },
+  { name: "Psicóloga María García",     rubro: "Psicología / Terapia", city: "Córdoba",      services: 2, fromPrice: 6000 },
+  { name: "Studio Nail Art & Beauty",   rubro: "Uñas / Nail art",      city: "Mendoza",      services: 12, fromPrice: 1200 },
+  { name: "Clínica Kinesiología Activa",rubro: "Kinesiología / Fisioterapia", city: "Buenos Aires", services: 6, fromPrice: 4500 },
+  { name: "Nutricionista Online",       rubro: "Nutrición",            city: "CABA",         services: 3, fromPrice: 5500 },
+];
+
+function DirectoryPreview() {
+  return (
+    <section className="py-20 bg-muted/20">
+      <div className="max-w-6xl mx-auto px-4">
+        <div className="text-center mb-12">
+          <span className="text-xs font-semibold uppercase tracking-widest text-primary">Directorio</span>
+          <h2 className="text-3xl font-bold mt-2">
+            Explorá negocios y reservá al instante
+          </h2>
+          <p className="text-muted-foreground mt-3 max-w-xl mx-auto">
+            Todos los negocios en Reunio tienen su propia página de reservas. Encontrá el profesional que necesitás y agendá en segundos.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+          {PREVIEW_CARDS.map((card) => {
+            const config = RUBRO_CONFIG[card.rubro] ?? RUBRO_CONFIG["Otro"]!;
+            return (
+              <div key={card.name} className="bg-background border rounded-2xl overflow-hidden">
+                {/* Cover – gradient placeholder */}
+                <div
+                  className="h-36 relative flex items-end px-4 pb-3"
+                  style={{ background: `linear-gradient(135deg, ${config.color}99, ${config.color}33)` }}
+                >
+                  <span className="text-xs font-semibold px-2.5 py-1 rounded-full text-white shadow-sm"
+                    style={{ backgroundColor: config.color + "ee" }}>
+                    {config.emoji} {card.rubro}
+                  </span>
+                </div>
+                {/* Body */}
+                <div className="px-4 pt-3 pb-4 space-y-1">
+                  <h3 className="font-semibold text-sm">{card.name}</h3>
+                  <p className="text-xs text-muted-foreground flex items-center gap-1">
+                    <MapPin className="w-3 h-3" /> {card.city}
+                  </p>
+                  <div className="flex items-center justify-between pt-2 text-xs text-muted-foreground border-t mt-2">
+                    <span>{card.services} servicios</span>
+                    <span className="font-medium text-foreground">
+                      desde ${card.fromPrice.toLocaleString("es-AR")}
+                    </span>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+
+        <div className="text-center mt-10">
+          <Link href="/explorar">
+            <Button variant="outline" size="lg" className="gap-2">
+              Ver todos los negocios <ArrowRight className="w-4 h-4" />
+            </Button>
+          </Link>
+        </div>
+      </div>
+    </section>
+  );
+}
+
 function CTA() {
   return (
     <section className="py-24 bg-primary text-primary-foreground">
@@ -378,6 +450,7 @@ export default function LandingPage() {
       <Features />
       <HowItWorks />
       <PricingPreview />
+      <DirectoryPreview />
       <CTA />
       <Footer />
     </div>

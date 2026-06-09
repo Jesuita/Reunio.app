@@ -58,6 +58,8 @@ const RegisterSchema = z.object({
   businessSlug:      z.string().min(2).max(60),
   businessPhone:     z.string().optional(),
   businessTimezone:  z.string(),
+  businessRubro:     z.string().optional(),
+  businessCity:      z.string().optional(),
   // First service
   serviceName:       z.string().min(2),
   serviceCategory:   z.string().min(1).max(50).default("General"),
@@ -127,12 +129,15 @@ export async function registerAction(data: unknown): Promise<RegisterActionResul
   const { data: org, error: orgError } = await admin
     .from("organizations")
     .insert({
-      name:     d.businessName,
-      slug:     d.businessSlug,
-      timezone: d.businessTimezone,
-      phone:    d.businessPhone ?? null,
-      plan_id:  freePlan.id,
-      settings: { onboarding_completed: false, owner_user_id: userId },
+      name:      d.businessName,
+      slug:      d.businessSlug,
+      timezone:  d.businessTimezone,
+      phone:     d.businessPhone  ?? null,
+      rubro:     d.businessRubro  ?? null,
+      city:      d.businessCity   ?? null,
+      plan_id:   freePlan.id,
+      is_listed: true,
+      settings:  { onboarding_completed: false, owner_user_id: userId },
     })
     .select("id")
     .single();

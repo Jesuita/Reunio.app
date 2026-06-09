@@ -7,6 +7,7 @@ import WeekScheduleEditor, {
   type DaySchedule,
 } from "@/components/WeekScheduleEditor";
 import { saveAllBusinessHours } from "@/lib/actions/business-hours";
+import { RUBROS, getRubroConfig, getInitials } from "@/lib/rubros";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
@@ -22,6 +23,12 @@ type Org = {
   website: string | null;
   description: string | null;
   settings: Record<string, unknown> | null;
+  rubro: string | null;
+  city: string | null;
+  is_listed: boolean;
+  logo_url: string | null;
+  avatar_url: string | null;
+  cover_url: string | null;
 };
 
 // ─── Constants ───────────────────────────────────────────────────────────────
@@ -146,6 +153,13 @@ export default function SettingsForm({
       website:     fd.get("website"),
       description: fd.get("description"),
       timezone:    fd.get("timezone"),
+      // Directory
+      rubro:       fd.get("rubro") || null,
+      city:        fd.get("city") || null,
+      is_listed:   fd.get("is_listed") === "true",
+      logo_url:    fd.get("logo_url") || null,
+      avatar_url:  fd.get("avatar_url") || null,
+      cover_url:   fd.get("cover_url") || null,
       settings: {
         minAdvanceMinutes:         Number(fd.get("minAdvanceMinutes")),
         maxAdvanceDays:            Number(fd.get("maxAdvanceDays")),
@@ -217,6 +231,77 @@ export default function SettingsForm({
           <div className="pt-1 text-sm text-muted-foreground">
             <span className="font-medium">URL pública:</span>{" "}
             <code className="bg-muted px-1.5 py-0.5 rounded text-xs">reunio.app/{org.slug}</code>
+          </div>
+        </section>
+
+        {/* ── Directorio público ───────────────────────────────────────── */}
+        <section className="bg-background border rounded-xl p-6 space-y-4">
+          <div>
+            <h2 className="font-semibold text-base">Directorio público</h2>
+            <p className="text-sm text-muted-foreground mt-0.5">
+              Tu negocio aparece en <strong>/explorar</strong> para que nuevos clientes te encuentren.
+            </p>
+          </div>
+
+          {/* Avatar preview */}
+          <div className="flex items-center gap-4">
+            <div
+              className="w-16 h-16 rounded-full flex items-center justify-center text-white font-bold text-xl flex-shrink-0"
+              style={{ backgroundColor: getRubroConfig(org.rubro).color }}
+            >
+              {getInitials(org.name)}
+            </div>
+            <div className="text-sm text-muted-foreground">
+              <p className="font-medium text-foreground">{org.name}</p>
+              <p>{org.rubro ?? "Sin rubro definido"} {org.city ? `· ${org.city}` : ""}</p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+              <label className="text-sm font-medium mb-1 block">Rubro</label>
+              <select name="rubro" defaultValue={org.rubro ?? ""}
+                className="w-full border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring">
+                <option value="">— Sin rubro —</option>
+                {RUBROS.map((r) => <option key={r} value={r}>{r}</option>)}
+              </select>
+            </div>
+            <div>
+              <label className="text-sm font-medium mb-1 block">Ciudad</label>
+              <input name="city" defaultValue={org.city ?? ""}
+                placeholder="Ej: Buenos Aires, Rosario"
+                className="w-full border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring" />
+            </div>
+            <div className="sm:col-span-2">
+              <label className="text-sm font-medium mb-1 block">URL de portada</label>
+              <input name="cover_url" defaultValue={org.cover_url ?? ""} type="url"
+                placeholder="https://... (imagen ancha, relación 16:9)"
+                className="w-full border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring" />
+              <p className="text-xs text-muted-foreground mt-1">
+                Dejá vacío para usar la imagen predeterminada de tu rubro.
+              </p>
+            </div>
+            <div>
+              <label className="text-sm font-medium mb-1 block">URL de logo</label>
+              <input name="logo_url" defaultValue={org.logo_url ?? ""} type="url"
+                placeholder="https://..."
+                className="w-full border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring" />
+            </div>
+            <div>
+              <label className="text-sm font-medium mb-1 block">URL de avatar / foto de perfil</label>
+              <input name="avatar_url" defaultValue={org.avatar_url ?? ""} type="url"
+                placeholder="https://..."
+                className="w-full border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring" />
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3 pt-1">
+            <label className="text-sm font-medium">Visibilidad en el directorio</label>
+            <select name="is_listed" defaultValue={org.is_listed ? "true" : "false"}
+              className="border rounded-md px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-ring">
+              <option value="true">Visible (recomendado)</option>
+              <option value="false">Oculto — no aparecer en /explorar</option>
+            </select>
           </div>
         </section>
 

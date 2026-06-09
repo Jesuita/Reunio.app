@@ -10,6 +10,13 @@ const patchSchema = z.object({
   address:       z.string().optional().nullable(),
   website:       z.string().url().optional().nullable(),
   timezone:      z.string().optional(),
+  // Directory fields
+  rubro:         z.string().optional().nullable(),
+  city:          z.string().optional().nullable(),
+  is_listed:     z.boolean().optional(),
+  logo_url:      z.string().url().optional().nullable(),
+  avatar_url:    z.string().url().optional().nullable(),
+  cover_url:     z.string().url().optional().nullable(),
   settings:      z.record(z.unknown()).optional(),
   // Partial settings merge (for widget settings, etc.)
   settings_patch: z.record(z.unknown()).optional(),

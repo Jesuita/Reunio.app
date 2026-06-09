@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Check, ChevronRight, Building2, User, Scissors, Clock } from "lucide-react";
 import { registerAction } from "@/lib/actions/auth";
 import WeekScheduleEditor, { defaultWeekSchedule, type WeekSchedule } from "@/components/WeekScheduleEditor";
+import { RUBROS } from "@/lib/rubros";
 
 type Step = 1 | 2 | 3 | 4;
 
@@ -21,6 +22,8 @@ interface FormData {
   businessSlug: string;
   businessPhone: string;
   businessTimezone: string;
+  businessRubro: string;
+  businessCity: string;
   // Step 3 — First service
   serviceName: string;
   serviceCategory: string;
@@ -69,6 +72,8 @@ export default function RegisterWizard({ initialPlan }: { initialPlan: string })
     businessSlug:      "",
     businessPhone:     "",
     businessTimezone:  "America/Argentina/Buenos_Aires",
+    businessRubro:     "",
+    businessCity:      "",
     serviceName:       "",
     serviceCategory:   "General",
     serviceDuration:   "30",
@@ -205,9 +210,25 @@ export default function RegisterWizard({ initialPlan }: { initialPlan: string })
               {errors.businessSlug && <p className="text-xs text-red-500">{errors.businessSlug}</p>}
             </div>
             <div className="space-y-2">
-              <Label>Teléfono (WhatsApp)</Label>
-              <Input type="tel" placeholder="+54 9 11 1234-5678"
-                value={form.businessPhone} onChange={(e) => set("businessPhone", e.target.value)} />
+              <Label>Rubro del negocio</Label>
+              <select className="w-full border border-input rounded-md px-3 py-2 text-sm bg-background"
+                value={form.businessRubro} onChange={(e) => set("businessRubro", e.target.value)}>
+                <option value="">— Seleccioná el rubro —</option>
+                {RUBROS.map((r) => <option key={r} value={r}>{r}</option>)}
+              </select>
+              <p className="text-xs text-muted-foreground">Aparecerá en el directorio público de Reunio.</p>
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label>Ciudad</Label>
+                <Input placeholder="Ej: Buenos Aires"
+                  value={form.businessCity} onChange={(e) => set("businessCity", e.target.value)} />
+              </div>
+              <div className="space-y-2">
+                <Label>Teléfono (WhatsApp)</Label>
+                <Input type="tel" placeholder="+54 9 11 1234-5678"
+                  value={form.businessPhone} onChange={(e) => set("businessPhone", e.target.value)} />
+              </div>
             </div>
             <div className="space-y-2">
               <Label>Zona horaria</Label>
