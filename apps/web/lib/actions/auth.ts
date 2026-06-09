@@ -63,13 +63,15 @@ const RegisterSchema = z.object({
   serviceCategory:   z.string().min(1).max(50).default("General"),
   serviceDuration:   z.coerce.number().int().min(5),
   servicePrice:      z.coerce.number().min(0).optional(),
-  // Availability
-  availableDays:     z.array(z.number().int().min(0).max(6)).min(1),
-  openTime:          z.string().regex(/^\d{2}:\d{2}$/),
-  closeTime:         z.string().regex(/^\d{2}:\d{2}$/),
-  hasTwoBlocks:      z.boolean().optional().default(false),
-  openTime2:         z.string().regex(/^\d{2}:\d{2}$/).optional(),
-  closeTime2:        z.string().regex(/^\d{2}:\d{2}$/).optional(),
+  // Availability — per-day schedule from WeekScheduleEditor
+  // weekSchedule: Record<"0".."6", Array<{start_time, end_time}>>
+  weekSchedule:      z.record(
+    z.string().regex(/^[0-6]$/),
+    z.array(z.object({
+      start_time: z.string().regex(/^\d{2}:\d{2}$/),
+      end_time:   z.string().regex(/^\d{2}:\d{2}$/),
+    })).max(2),
+  ),
   plan:              z.enum(["free", "pro", "business"]).default("free"),
 });
 
@@ -189,31 +191,35 @@ export async function registerAction(data: unknown): Promise<RegisterActionResul
     console.error("[register] service error:", serviceError);
   }
 
-  // 8. Create schedules (one or two blocks per day)
+  // 8. Create schedules from weekSchedule (per-day, 0–2 blocks each)
   if (staffId) {
-    const block1 = d.availableDays.map((day) => ({
-      staff_id:    staffId,
-      day_of_week: day,
-      start_time:  d.openTime + ":00",
-      end_time:    d.closeTime + ":00",
-      is_active:   true,
-    }));
+    const rows: Array<{
+      organization_id: string;
+      staff_id:        string;
+      day_of_week:     number;
+      start_time:      string;
+      end_time:        string;
+      is_active:       boolean;
+    }> = [];
 
-    const block2 =
-      d.hasTwoBlocks && d.openTime2 && d.closeTime2
-        ? d.availableDays.map((day) => ({
-            staff_id:    staffId,
-            day_of_week: day,
-            start_time:  d.openTime2! + ":00",
-            end_time:    d.closeTime2! + ":00",
-            is_active:   true,
-          }))
-        : [];
+    for (const [dayStr, blocks] of Object.entries(d.weekSchedule)) {
+      const day = Number(dayStr);
+      for (const block of blocks) {
+        rows.push({
+          organization_id: orgId,
+          staff_id:        staffId,
+          day_of_week:     day,
+          start_time:      block.start_time + ":00",
+          end_time:        block.end_time   + ":00",
+          is_active:       true,
+        });
+      }
+    }
 
-    // Note: schedules has unique(staff_id, day_of_week) — for two blocks
-    // the engine merges same-day entries. Block 2 merges with block 1 on same day.
-    // For now we insert both; the availability engine handles multi-block days.
-    await admin.from("schedules").insert([...block1, ...block2]);
+    if (rows.length > 0) {
+      const { error: schedError } = await admin.from("schedules").insert(rows);
+      if (schedError) console.error("[register] schedules error:", schedError);
+    }
   }
 
   // 9. Sign in the new user immediately
