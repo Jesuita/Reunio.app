@@ -41,8 +41,8 @@ export async function middleware(req: NextRequest) {
   // Refresh session — important: must call getUser() not getSession()
   const { data: { user } } = await supabase.auth.getUser();
 
-  // Protect all /dashboard/** routes
-  if (pathname.startsWith("/dashboard")) {
+  // Protect all /dashboard/** and /admin/** routes (must be logged in)
+  if (pathname.startsWith("/dashboard") || pathname.startsWith("/admin")) {
     if (!user) {
       const loginUrl = new URL("/login", req.url);
       loginUrl.searchParams.set("next", pathname);
@@ -74,6 +74,7 @@ export async function middleware(req: NextRequest) {
 export const config = {
   matcher: [
     "/dashboard/:path*",
+    "/admin/:path*",
     "/login",
     "/register",
   ],
