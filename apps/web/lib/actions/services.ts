@@ -19,14 +19,15 @@ async function getOrgId(): Promise<{ orgId: string } | { error: string }> {
 }
 
 const ServiceSchema = z.object({
-  name: z.string().min(1).max(100),
-  description: z.string().max(500).optional(),
+  name:             z.string().min(1).max(100),
+  description:      z.string().max(500).optional(),
   duration_minutes: z.coerce.number().int().min(5).max(480),
-  price: z.coerce.number().min(0),
-  deposit_amount: z.coerce.number().min(0).optional().nullable(),
-  color: z.string().regex(/^#[0-9A-Fa-f]{6}$/),
-  category: z.string().min(1).max(50),
-  is_active: z.boolean().default(true),
+  price:            z.coerce.number().min(0),
+  deposit_amount:   z.coerce.number().min(0).optional().nullable(),
+  color:            z.string().regex(/^#[0-9A-Fa-f]{6}$/),
+  category:         z.string().min(1).max(50),
+  category_id:      z.string().uuid().optional().nullable(),
+  is_active:        z.boolean().default(true),
 });
 
 export type ServiceFormState =

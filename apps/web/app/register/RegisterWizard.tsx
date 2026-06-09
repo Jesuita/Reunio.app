@@ -26,8 +26,13 @@ interface FormData {
   servicePrice: string;
   // Step 4 — Availability
   availableDays: number[];
+  // Block 1 (morning / single block)
   openTime: string;
   closeTime: string;
+  // Block 2 (afternoon — optional)
+  hasTwoBlocks: boolean;
+  openTime2: string;
+  closeTime2: string;
 }
 
 const STEPS = [
@@ -84,10 +89,13 @@ export default function RegisterWizard({ initialPlan }: { initialPlan: string })
     servicePrice: "",
     availableDays: [1, 2, 3, 4, 5],
     openTime: "09:00",
-    closeTime: "18:00",
+    closeTime: "13:00",
+    hasTwoBlocks: false,
+    openTime2: "16:00",
+    closeTime2: "20:00",
   });
 
-  function set(field: keyof FormData, value: string | number[]) {
+  function set(field: keyof FormData, value: string | number[] | boolean) {
     setForm((prev) => {
       const next = { ...prev, [field]: value };
       // Auto-generate slug from business name
@@ -317,9 +325,15 @@ export default function RegisterWizard({ initialPlan }: { initialPlan: string })
 
         {/* Step 4 */}
         {step === 4 && (
-          <div className="space-y-4">
-            <h2 className="text-xl font-bold">Tu disponibilidad</h2>
-            <p className="text-sm text-muted-foreground">Configurá los días y horarios de atención por defecto.</p>
+          <div className="space-y-5">
+            <div>
+              <h2 className="text-xl font-bold">Tu disponibilidad</h2>
+              <p className="text-sm text-muted-foreground mt-1">
+                Configurá los días y horarios de atención por defecto. Podés ajustar cada profesional por separado desde el panel.
+              </p>
+            </div>
+
+            {/* Days */}
             <div className="space-y-2">
               <Label>Días disponibles</Label>
               <div className="flex gap-2 flex-wrap">
@@ -340,24 +354,74 @@ export default function RegisterWizard({ initialPlan }: { initialPlan: string })
               </div>
               {errors.availableDays && <p className="text-xs text-red-500">{errors.availableDays}</p>}
             </div>
-            <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>Hora de apertura</Label>
-                <Input
-                  type="time"
-                  value={form.openTime}
-                  onChange={(e) => set("openTime", e.target.value)}
-                />
-              </div>
-              <div className="space-y-2">
-                <Label>Hora de cierre</Label>
-                <Input
-                  type="time"
-                  value={form.closeTime}
-                  onChange={(e) => set("closeTime", e.target.value)}
-                />
+
+            {/* Block 1 */}
+            <div className="space-y-2">
+              <Label>{form.hasTwoBlocks ? "Turno mañana" : "Horario de atención"}</Label>
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <span className="text-xs text-muted-foreground block mb-1">Desde</span>
+                  <Input
+                    type="time"
+                    value={form.openTime}
+                    onChange={(e) => set("openTime", e.target.value)}
+                  />
+                </div>
+                <div>
+                  <span className="text-xs text-muted-foreground block mb-1">Hasta</span>
+                  <Input
+                    type="time"
+                    value={form.closeTime}
+                    onChange={(e) => set("closeTime", e.target.value)}
+                  />
+                </div>
               </div>
             </div>
+
+            {/* Toggle second block */}
+            <button
+              type="button"
+              onClick={() => set("hasTwoBlocks", !form.hasTwoBlocks)}
+              className={`text-sm flex items-center gap-2 transition-colors ${
+                form.hasTwoBlocks ? "text-primary font-medium" : "text-muted-foreground hover:text-foreground"
+              }`}
+            >
+              <span className={`w-4 h-4 rounded border-2 flex items-center justify-center ${
+                form.hasTwoBlocks ? "bg-primary border-primary" : "border-border"
+              }`}>
+                {form.hasTwoBlocks && <span className="text-primary-foreground text-xs leading-none">✓</span>}
+              </span>
+              Tengo horario partido (mañana y tarde)
+            </button>
+
+            {/* Block 2 */}
+            {form.hasTwoBlocks && (
+              <div className="space-y-2 pl-4 border-l-2 border-primary/30">
+                <Label>Turno tarde</Label>
+                <div className="grid grid-cols-2 gap-3">
+                  <div>
+                    <span className="text-xs text-muted-foreground block mb-1">Desde</span>
+                    <Input
+                      type="time"
+                      value={form.openTime2}
+                      onChange={(e) => set("openTime2", e.target.value)}
+                    />
+                  </div>
+                  <div>
+                    <span className="text-xs text-muted-foreground block mb-1">Hasta</span>
+                    <Input
+                      type="time"
+                      value={form.closeTime2}
+                      onChange={(e) => set("closeTime2", e.target.value)}
+                    />
+                  </div>
+                </div>
+                <p className="text-xs text-muted-foreground">
+                  El sistema no ofrecerá turnos entre el cierre de mañana ({form.closeTime}) y la apertura de tarde ({form.openTime2}).
+                </p>
+              </div>
+            )}
+
             {errors.submit && (
               <div className="bg-red-50 border border-red-200 text-red-700 text-sm rounded-lg px-4 py-3">
                 {errors.submit}

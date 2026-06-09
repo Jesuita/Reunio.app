@@ -1,19 +1,20 @@
 import Link from "next/link";
-import { Calendar, Scissors, Users, LayoutDashboard, BookOpen, UserSquare2, BarChart2, Settings, CreditCard, Code2 } from "lucide-react";
+import { Calendar, Scissors, Users, LayoutDashboard, BookOpen, UserSquare2, BarChart2, Settings, CreditCard, Code2, Tag } from "lucide-react";
 import { requireAuth } from "@/lib/auth";
 import LogoutButton from "./LogoutButton";
 
 const navItems = [
-  { href: "/dashboard",           label: "Resumen",      icon: LayoutDashboard },
-  { href: "/dashboard/calendar",  label: "Agenda",       icon: Calendar },
-  { href: "/dashboard/bookings",  label: "Turnos",       icon: BookOpen },
-  { href: "/dashboard/clients",   label: "Clientes",     icon: UserSquare2 },
-  { href: "/dashboard/services",  label: "Servicios",    icon: Scissors },
-  { href: "/dashboard/staff",     label: "Personal",     icon: Users },
-  { href: "/dashboard/reports",   label: "Reportes",     icon: BarChart2 },
-  { href: "/dashboard/settings",  label: "Config",       icon: Settings },
-  { href: "/dashboard/billing",   label: "Facturación",  icon: CreditCard },
-  { href: "/dashboard/widget",    label: "Widget",       icon: Code2 },
+  { href: "/dashboard",             label: "Resumen",      icon: LayoutDashboard },
+  { href: "/dashboard/calendar",    label: "Agenda",       icon: Calendar },
+  { href: "/dashboard/bookings",    label: "Turnos",       icon: BookOpen },
+  { href: "/dashboard/clients",     label: "Clientes",     icon: UserSquare2 },
+  { href: "/dashboard/services",    label: "Servicios",    icon: Scissors },
+  { href: "/dashboard/categories",  label: "Categorías",   icon: Tag },
+  { href: "/dashboard/staff",       label: "Personal",     icon: Users },
+  { href: "/dashboard/reports",     label: "Reportes",     icon: BarChart2 },
+  { href: "/dashboard/settings",    label: "Config",       icon: Settings },
+  { href: "/dashboard/billing",     label: "Facturación",  icon: CreditCard },
+  { href: "/dashboard/widget",      label: "Widget",       icon: Code2 },
 ];
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {

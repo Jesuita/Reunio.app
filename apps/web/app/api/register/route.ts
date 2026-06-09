@@ -143,7 +143,7 @@ export async function POST(req: NextRequest) {
     }));
 
     const { error: schedError } = await supabase
-      .from("staff_schedules")
+      .from("schedules")
       .insert(schedules);
 
     if (schedError) {

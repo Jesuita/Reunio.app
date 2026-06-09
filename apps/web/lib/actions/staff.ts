@@ -114,7 +114,7 @@ export async function upsertSchedule(
   }
 
   const supabase = createClient();
-  const { error } = await supabase.from("staff_schedules").upsert(
+  const { error } = await supabase.from("schedules").upsert(
     {
       organization_id: auth.orgId,
       staff_id: staffId,
@@ -140,7 +140,7 @@ export async function deleteSchedule(
 
   const supabase = createClient();
   const { error } = await supabase
-    .from("staff_schedules")
+    .from("schedules")
     .update({ is_active: false })
     .eq("staff_id", staffId)
     .eq("organization_id", auth.orgId)
