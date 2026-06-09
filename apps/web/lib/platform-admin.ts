@@ -14,17 +14,22 @@ export async function requirePlatformAdmin(): Promise<{ userId: string }> {
     redirect("/login?next=/admin");
   }
 
-  // Verificamos contra la tabla platform_admins usando service role (sin RLS)
-  const admin = createAdminClient();
-  const { data } = await admin
-    .from("platform_admins")
-    .select("user_id")
-    .eq("user_id", user.id)
-    .single();
+  // El claim is_platform_admin vive en app_metadata del JWT — sin consulta extra.
+  const isPlatformAdmin =
+    (user.app_metadata as Record<string, unknown> | undefined)?.["is_platform_admin"] === true;
 
-  if (!data) {
-    // Usuario autenticado pero no es platform admin → volver a su dashboard
-    redirect("/dashboard");
+  if (!isPlatformAdmin) {
+    // Fallback: verificar contra la tabla por si el JWT no tiene el claim todavía
+    const admin = createAdminClient();
+    const { data } = await admin
+      .from("platform_admins")
+      .select("user_id")
+      .eq("user_id", user.id)
+      .single();
+
+    if (!data) {
+      redirect("/dashboard");
+    }
   }
 
   return { userId: user.id };

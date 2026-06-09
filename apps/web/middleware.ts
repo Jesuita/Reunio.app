@@ -52,7 +52,10 @@ export async function middleware(req: NextRequest) {
 
   // Redirect authenticated users away from auth pages
   if ((pathname === "/login" || pathname === "/register") && user) {
-    return NextResponse.redirect(new URL("/dashboard", req.url));
+    // Platform admins van a /admin, el resto al dashboard del negocio
+    const isPlatformAdmin =
+      (user.app_metadata as Record<string, unknown> | undefined)?.["is_platform_admin"] === true;
+    return NextResponse.redirect(new URL(isPlatformAdmin ? "/admin" : "/dashboard", req.url));
   }
 
   // Admin-only paths: owners and admins only (staff → redirect to calendar)

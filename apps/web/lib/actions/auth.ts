@@ -31,13 +31,24 @@ export async function loginAction(
   const { email, password, next } = parsed.data;
   const supabase = createClient();
 
-  const { error } = await supabase.auth.signInWithPassword({ email, password });
+  const { data: signInData, error } = await supabase.auth.signInWithPassword({ email, password });
 
   if (error) {
     if (error.message.toLowerCase().includes("invalid login credentials")) {
       return { error: "Email o contraseña incorrectos." };
     }
     return { error: "Error al iniciar sesión. Intentá de nuevo." };
+  }
+
+  // Si el usuario es platform admin, va directo al panel de administración.
+  // El claim is_platform_admin vive en app_metadata del JWT — sin consulta extra.
+  const isPlatformAdmin =
+    (signInData.user?.app_metadata as Record<string, unknown> | undefined)
+      ?.["is_platform_admin"] === true;
+
+  if (isPlatformAdmin) {
+    revalidatePath("/admin", "layout");
+    redirect("/admin");
   }
 
   revalidatePath("/dashboard", "layout");
