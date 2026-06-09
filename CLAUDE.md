@@ -67,10 +67,20 @@ Fase 1 — Producto y arquitectura
 - [x] lib/supabase/server.ts + client.ts helpers
 
 ### En progreso
-- [ ] Bloque D — reschedule/cancel por JWT, lista de espera, Google Calendar sync
+- [ ] Fase 4 — Mercado Pago + WhatsApp API + recordatorios
+
+### Completado recientemente
+- [x] Bloque D: JWT manage links (/booking/manage/[token]), waitlist API, cancel flow
+- [x] Fase 3: panel admin completo
+  - /dashboard mejorado: KPIs, barchart semana, agenda, actividad reciente, waitlist
+  - /dashboard/bookings: filtros múltiples, panel lateral, exportar CSV
+  - /dashboard/clients: CRM con búsqueda + /clients/[id] ficha con historial, notas, blacklist
+  - /dashboard/settings: configuración org + políticas de reserva
+  - /dashboard/reports: ingresos/ocupación/no-shows por período, breakdown por servicio y staff
+  - middleware.ts: scaffolding de permisos (activo en Fase 5)
 
 ### Próximo paso
-Bloque D: links JWT para autogestión, luego Fase 3 (panel admin completo)
+Fase 4: Mercado Pago (señas), WhatsApp Business API vía 360dialog, recordatorios automáticos
 
 ### Decisiones tomadas
 (actualizar a medida que se toman decisiones de arquitectura)
