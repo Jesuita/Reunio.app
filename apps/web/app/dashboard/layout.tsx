@@ -1,11 +1,15 @@
 import Link from "next/link";
-import { Calendar, Scissors, Users, LayoutDashboard } from "lucide-react";
+import { Calendar, Scissors, Users, LayoutDashboard, BookOpen, UserSquare2, BarChart2, Settings } from "lucide-react";
 
 const navItems = [
-  { href: "/dashboard", label: "Resumen", icon: LayoutDashboard },
-  { href: "/dashboard/calendar", label: "Agenda", icon: Calendar },
-  { href: "/dashboard/services", label: "Servicios", icon: Scissors },
-  { href: "/dashboard/staff", label: "Personal", icon: Users },
+  { href: "/dashboard",           label: "Resumen",   icon: LayoutDashboard },
+  { href: "/dashboard/calendar",  label: "Agenda",    icon: Calendar },
+  { href: "/dashboard/bookings",  label: "Turnos",    icon: BookOpen },
+  { href: "/dashboard/clients",   label: "Clientes",  icon: UserSquare2 },
+  { href: "/dashboard/services",  label: "Servicios", icon: Scissors },
+  { href: "/dashboard/staff",     label: "Personal",  icon: Users },
+  { href: "/dashboard/reports",   label: "Reportes",  icon: BarChart2 },
+  { href: "/dashboard/settings",  label: "Config",    icon: Settings },
 ];
 
 export default function DashboardLayout({ children }: { children: React.ReactNode }) {
