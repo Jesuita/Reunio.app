@@ -7,7 +7,7 @@ import {
   updateStaff,
   saveScheduleDay,
   type StaffFormState,
-  type ScheduleBlock,
+  type ScheduleBlock,  // eslint-disable-line @typescript-eslint/no-unused-vars
 } from "@/lib/actions/staff";
 import { Button } from "@/components/ui/button";
 import { Plus, Pencil, ChevronDown, ChevronRight, X } from "lucide-react";

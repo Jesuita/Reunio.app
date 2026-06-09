@@ -22,6 +22,7 @@ interface FormData {
   businessTimezone: string;
   // Step 3 — First service
   serviceName: string;
+  serviceCategory: string;
   serviceDuration: string;
   servicePrice: string;
   // Step 4 — Availability
@@ -85,6 +86,7 @@ export default function RegisterWizard({ initialPlan }: { initialPlan: string })
     businessPhone: "",
     businessTimezone: "America/Argentina/Buenos_Aires",
     serviceName: "",
+    serviceCategory: "General",
     serviceDuration: "30",
     servicePrice: "",
     availableDays: [1, 2, 3, 4, 5],
@@ -121,6 +123,7 @@ export default function RegisterWizard({ initialPlan }: { initialPlan: string })
     if (s === 3) {
       if (!form.serviceName.trim()) errs.serviceName = "Ingresá el nombre del servicio.";
       if (!form.serviceDuration || Number(form.serviceDuration) < 5) errs.serviceDuration = "Duración mínima: 5 min.";
+      if (!form.serviceCategory.trim()) set("serviceCategory", "General");
     }
     if (s === 4) {
       if (form.availableDays.length === 0) errs.availableDays = "Seleccioná al menos un día.";
@@ -285,20 +288,45 @@ export default function RegisterWizard({ initialPlan }: { initialPlan: string })
         {/* Step 3 */}
         {step === 3 && (
           <div className="space-y-4">
-            <h2 className="text-xl font-bold">Tu primer servicio</h2>
-            <p className="text-sm text-muted-foreground">Podés agregar más servicios después desde el panel.</p>
-            <div className="space-y-2">
-              <Label>Nombre del servicio</Label>
+            <div>
+              <h2 className="text-xl font-bold">Tu primer servicio</h2>
+              <p className="text-sm text-muted-foreground mt-1">
+                Configurá un servicio de ejemplo para empezar. Podés agregar, editar y organizar todos tus servicios desde el panel.
+              </p>
+            </div>
+
+            {/* Category */}
+            <div className="space-y-1.5">
+              <Label>
+                Categoría
+                <span className="ml-1.5 text-xs text-muted-foreground font-normal">
+                  — agrupa los servicios en tu página de reservas
+                </span>
+              </Label>
               <Input
-                placeholder="Ej: Corte de cabello, Consulta, Masaje"
+                placeholder="Ej: Cortes, Consultas, Masajes, Tratamientos"
+                value={form.serviceCategory}
+                onChange={(e) => set("serviceCategory", e.target.value)}
+              />
+              <p className="text-xs text-muted-foreground">
+                Podés crear más categorías desde el panel. Si no sabés qué poner, dejá &quot;General&quot;.
+              </p>
+            </div>
+
+            {/* Service name */}
+            <div className="space-y-1.5">
+              <Label>Nombre del servicio *</Label>
+              <Input
+                placeholder="Ej: Corte de cabello, Consulta inicial, Masaje relajante"
                 value={form.serviceName}
                 onChange={(e) => set("serviceName", e.target.value)}
               />
               {errors.serviceName && <p className="text-xs text-red-500">{errors.serviceName}</p>}
             </div>
+
             <div className="grid grid-cols-2 gap-4">
-              <div className="space-y-2">
-                <Label>Duración (minutos)</Label>
+              <div className="space-y-1.5">
+                <Label>Duración (minutos) *</Label>
                 <Input
                   type="number"
                   min="5"
@@ -309,16 +337,27 @@ export default function RegisterWizard({ initialPlan }: { initialPlan: string })
                 />
                 {errors.serviceDuration && <p className="text-xs text-red-500">{errors.serviceDuration}</p>}
               </div>
-              <div className="space-y-2">
-                <Label>Precio (ARS) <span className="text-muted-foreground font-normal">opcional</span></Label>
+              <div className="space-y-1.5">
+                <Label>
+                  Precio (ARS)
+                  <span className="ml-1 text-xs text-muted-foreground font-normal">opcional</span>
+                </Label>
                 <Input
                   type="number"
                   min="0"
+                  step="100"
                   placeholder="3500"
                   value={form.servicePrice}
                   onChange={(e) => set("servicePrice", e.target.value)}
                 />
               </div>
+            </div>
+
+            <div className="bg-muted/40 border rounded-lg px-4 py-3 text-xs text-muted-foreground space-y-1">
+              <p className="font-medium text-foreground">¿Qué pasa con esto después?</p>
+              <p>• El servicio aparecerá en <strong>Panel → Servicios</strong> listo para editar.</p>
+              <p>• La categoría quedará creada en <strong>Panel → Categorías</strong> para que puedas agregar más.</p>
+              <p>• Podés agregar todos los servicios que necesités desde el panel.</p>
             </div>
           </div>
         )}

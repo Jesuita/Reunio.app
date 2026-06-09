@@ -51,23 +51,26 @@ export async function logoutAction(): Promise<void> {
 }
 
 const RegisterSchema = z.object({
-  email:            z.string().email(),
-  password:         z.string().min(8, "Mínimo 8 caracteres."),
-  confirmPassword:  z.string(),
-  businessName:     z.string().min(2),
-  businessSlug:     z.string().min(2).max(60),
-  businessPhone:    z.string().optional(),
-  businessTimezone: z.string(),
-  serviceName:      z.string().min(2),
-  serviceDuration:  z.coerce.number().int().min(5),
-  servicePrice:     z.coerce.number().optional(),
-  availableDays:    z.array(z.number().int().min(0).max(6)).min(1),
-  openTime:         z.string().regex(/^\d{2}:\d{2}$/),
-  closeTime:        z.string().regex(/^\d{2}:\d{2}$/),
-  hasTwoBlocks:     z.boolean().optional().default(false),
-  openTime2:        z.string().regex(/^\d{2}:\d{2}$/).optional(),
-  closeTime2:       z.string().regex(/^\d{2}:\d{2}$/).optional(),
-  plan:             z.enum(["free", "pro", "business"]).default("free"),
+  email:             z.string().email(),
+  password:          z.string().min(8, "Mínimo 8 caracteres."),
+  confirmPassword:   z.string(),
+  businessName:      z.string().min(2),
+  businessSlug:      z.string().min(2).max(60),
+  businessPhone:     z.string().optional(),
+  businessTimezone:  z.string(),
+  // First service
+  serviceName:       z.string().min(2),
+  serviceCategory:   z.string().min(1).max(50).default("General"),
+  serviceDuration:   z.coerce.number().int().min(5),
+  servicePrice:      z.coerce.number().min(0).optional(),
+  // Availability
+  availableDays:     z.array(z.number().int().min(0).max(6)).min(1),
+  openTime:          z.string().regex(/^\d{2}:\d{2}$/),
+  closeTime:         z.string().regex(/^\d{2}:\d{2}$/),
+  hasTwoBlocks:      z.boolean().optional().default(false),
+  openTime2:         z.string().regex(/^\d{2}:\d{2}$/).optional(),
+  closeTime2:        z.string().regex(/^\d{2}:\d{2}$/).optional(),
+  plan:              z.enum(["free", "pro", "business"]).default("free"),
 });
 
 export type RegisterActionResult = { error: string; field?: string } | { success: true; orgSlug: string };
@@ -157,15 +160,34 @@ export async function registerAction(data: unknown): Promise<RegisterActionResul
 
   const staffId = (staff as { id: string } | null)?.id;
 
-  // 7. Create first service
-  await admin.from("services").insert({
+  // 7a. Create default category for the first service
+  const { data: defaultCat, error: catError } = await admin
+    .from("service_categories")
+    .insert({ organization_id: orgId, name: d.serviceCategory, color: "#6366F1" })
+    .select("id")
+    .single();
+
+  if (catError) {
+    console.error("[register] category error:", catError);
+    // Non-fatal — continue without category_id
+  }
+
+  // 7b. Create first service (linked to the default category)
+  const { error: serviceError } = await admin.from("services").insert({
     organization_id:  orgId,
     name:             d.serviceName,
+    category:         d.serviceCategory,
+    category_id:      defaultCat?.id ?? null,
     duration_minutes: d.serviceDuration,
-    price:            d.servicePrice ? String(d.servicePrice) : "0",
-    currency:         "ARS",
+    price:            d.servicePrice ?? 0,
+    color:            "#3B82F6",
     is_active:        true,
   });
+
+  if (serviceError) {
+    // Non-fatal — log and continue. The user can create services from the dashboard.
+    console.error("[register] service error:", serviceError);
+  }
 
   // 8. Create schedules (one or two blocks per day)
   if (staffId) {
