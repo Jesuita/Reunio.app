@@ -17,7 +17,7 @@ export default async function AdminOrgDetailPage({ params }: PageProps) {
   // ── Fetch org + plan in one query ────────────────────────────────────────────
   const { data: org } = await admin
     .from("organizations")
-    .select(`*, plans ( id, name, price_monthly_ars )`)
+    .select(`*, plans ( id, name, price_ars )`)
     .eq("id", params.id)
     .single();
 
@@ -48,7 +48,7 @@ export default async function AdminOrgDetailPage({ params }: PageProps) {
   ]);
 
   const settings     = (org.settings ?? {}) as Record<string, unknown>;
-  const plan         = (org as unknown as { plans: { name: string; price_monthly_ars: number } | null }).plans;
+  const plan         = (org as unknown as { plans: { name: string; price_ars: number } | null }).plans;
   const rubroConfig  = getRubroConfig(org.rubro ?? undefined);
   const initials     = getInitials(org.name);
 
@@ -192,10 +192,10 @@ export default async function AdminOrgDetailPage({ params }: PageProps) {
                   : "bg-muted text-muted-foreground"
                 }`}>{plan?.name ?? "free"}</span>
               </div>
-              {plan?.price_monthly_ars && (
+              {plan?.price_ars && (
                 <div className="flex justify-between">
                   <span className="text-muted-foreground">Precio</span>
-                  <span>${plan.price_monthly_ars.toLocaleString("es-AR")}/mes</span>
+                  <span>${plan.price_ars.toLocaleString("es-AR")}/mes</span>
                 </div>
               )}
               {stripeStatus && (
