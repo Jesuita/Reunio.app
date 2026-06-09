@@ -6,24 +6,16 @@ import WeekScheduleEditor, {
   type WeekSchedule,
   type DaySchedule,
 } from "@/components/WeekScheduleEditor";
-import { saveScheduleDay } from "@/lib/actions/staff";
+import { saveAllBusinessHours } from "@/lib/actions/business-hours";
 
 // ─── Types ───────────────────────────────────────────────────────────────────
 
-type StaffMember = { id: string; name: string };
-
-type ScheduleRow = {
-  staff_id:    string;
-  day_of_week: number;
-  start_time:  string;
-  end_time:    string;
-};
+type BHRow = { day_of_week: number; start_time: string; end_time: string };
 
 type Org = {
   id: string;
   name: string;
   slug: string;
-  category?: string;
   timezone: string;
   phone: string | null;
   address: string | null;
@@ -46,62 +38,42 @@ const TIMEZONES = [
 
 // ─── Build WeekSchedule from DB rows ─────────────────────────────────────────
 
-function buildWeekSchedule(rows: ScheduleRow[]): WeekSchedule {
+function buildWeekSchedule(rows: BHRow[]): WeekSchedule {
   const ws: WeekSchedule = { 0: [], 1: [], 2: [], 3: [], 4: [], 5: [], 6: [] };
   for (const row of rows) {
-    const day = row.day_of_week;
-    ws[day] = [
-      ...(ws[day] ?? []),
+    ws[row.day_of_week] = [
+      ...(ws[row.day_of_week] ?? []),
       {
         start_time: row.start_time.slice(0, 5),
         end_time:   row.end_time.slice(0, 5),
       },
     ];
   }
-  // Sort blocks within each day by start_time
   for (const day of Object.keys(ws) as unknown as number[]) {
     ws[day]?.sort((a, b) => a.start_time.localeCompare(b.start_time));
   }
   return ws;
 }
 
-// ─── Schedule section ─────────────────────────────────────────────────────────
+// ─── Business hours section ───────────────────────────────────────────────────
 
-function ScheduleSection({
-  staffList,
-  schedulesByStaff,
-}: {
-  staffList:        StaffMember[];
-  schedulesByStaff: Record<string, ScheduleRow[]>;
-}) {
-  const [selectedStaffId, setSelectedStaffId] = useState<string>(staffList[0]?.id ?? "");
-  const [weekSchedule, setWeekSchedule]       = useState<WeekSchedule>(() =>
-    buildWeekSchedule(schedulesByStaff[staffList[0]?.id ?? ""] ?? [])
+function BusinessHoursSection({ initialRows }: { initialRows: BHRow[] }) {
+  const [weekSchedule, setWeekSchedule] = useState<WeekSchedule>(() =>
+    buildWeekSchedule(initialRows)
   );
   const [isPending, startTransition] = useTransition();
-  const [saveError,  setSaveError]   = useState<string | null>(null);
-  const [saved,      setSaved]       = useState(false);
+  const [saveError, setSaveError]    = useState<string | null>(null);
+  const [saved,     setSaved]        = useState(false);
 
-  function handleStaffChange(id: string) {
-    setSelectedStaffId(id);
-    setWeekSchedule(buildWeekSchedule(schedulesByStaff[id] ?? []));
-    setSaved(false);
-    setSaveError(null);
-  }
-
-  function saveAll() {
+  function save() {
     setSaveError(null);
     setSaved(false);
     startTransition(async () => {
-      // Save all 7 days concurrently
-      const results = await Promise.all(
-        (Object.entries(weekSchedule) as [string, DaySchedule][]).map(([dayStr, blocks]) =>
-          saveScheduleDay(selectedStaffId, Number(dayStr), blocks)
-        )
+      const result = await saveAllBusinessHours(
+        weekSchedule as Record<number, DaySchedule>
       );
-      const failed = results.find((r) => !r.success);
-      if (failed && !failed.success) {
-        setSaveError(failed.error);
+      if (!result.success) {
+        setSaveError(result.error);
       } else {
         setSaved(true);
         setTimeout(() => setSaved(false), 3000);
@@ -112,55 +84,30 @@ function ScheduleSection({
   return (
     <section className="bg-background border rounded-xl p-6 space-y-4">
       <div>
-        <h2 className="font-semibold text-base">Horario de atención</h2>
+        <h2 className="font-semibold text-base">Horario de atención del negocio</h2>
         <p className="text-sm text-muted-foreground mt-0.5">
-          Configurá los días y bloques horarios para cada profesional. Cada día puede tener un horario corrido o dos bloques (mañana y tarde).
+          Los días y horarios en que está abierto tu negocio. Se muestra en tu página pública de reservas.
+        </p>
+        <p className="text-xs text-muted-foreground mt-1 bg-muted/40 border rounded px-3 py-2">
+          💡 Este es el horario general del negocio, independiente de los turnos de cada profesional. Para editar el horario de cada profesional, andá a <strong>Panel → Personal</strong>.
         </p>
       </div>
 
-      {staffList.length === 0 ? (
-        <p className="text-sm text-muted-foreground">No hay personal activo. Agregá un miembro desde <strong>Panel → Personal</strong>.</p>
-      ) : (
-        <>
-          {/* Staff selector */}
-          {staffList.length > 1 && (
-            <div>
-              <label className="text-sm font-medium mb-1 block">Profesional</label>
-              <select
-                value={selectedStaffId}
-                onChange={(e) => handleStaffChange(e.target.value)}
-                className="border rounded-md px-3 py-2 text-sm w-full max-w-xs focus:outline-none focus:ring-2 focus:ring-ring"
-              >
-                {staffList.map((s) => (
-                  <option key={s.id} value={s.id}>{s.name}</option>
-                ))}
-              </select>
-            </div>
-          )}
+      <WeekScheduleEditor
+        value={weekSchedule}
+        onChange={setWeekSchedule}
+      />
 
-          <WeekScheduleEditor
-            value={weekSchedule}
-            onChange={setWeekSchedule}
-          />
-
-          {saveError && (
-            <p className="text-sm text-destructive bg-destructive/10 rounded-md px-3 py-2">{saveError}</p>
-          )}
-
-          <div className="flex items-center gap-3 pt-1">
-            <Button onClick={saveAll} disabled={isPending}>
-              {isPending ? "Guardando..." : "Guardar horario"}
-            </Button>
-            {saved && <span className="text-sm text-green-600">✓ Guardado</span>}
-          </div>
-
-          {staffList.length > 1 && (
-            <p className="text-xs text-muted-foreground">
-              Estás editando el horario de <strong>{staffList.find((s) => s.id === selectedStaffId)?.name}</strong>. Cada profesional tiene su propio horario independiente.
-            </p>
-          )}
-        </>
+      {saveError && (
+        <p className="text-sm text-destructive bg-destructive/10 rounded-md px-3 py-2">{saveError}</p>
       )}
+
+      <div className="flex items-center gap-3 pt-1">
+        <Button onClick={save} disabled={isPending}>
+          {isPending ? "Guardando..." : "Guardar horario"}
+        </Button>
+        {saved && <span className="text-sm text-green-600">✓ Guardado</span>}
+      </div>
     </section>
   );
 }
@@ -169,22 +116,20 @@ function ScheduleSection({
 
 export default function SettingsForm({
   org,
-  staffList,
-  schedulesByStaff,
+  businessHours,
 }: {
-  org:              Org | null;
-  staffList:        StaffMember[];
-  schedulesByStaff: Record<string, ScheduleRow[]>;
+  org:           Org | null;
+  businessHours: BHRow[];
 }) {
-  const [saved,   setSaved]   = useState(false);
-  const [saving,  setSaving]  = useState(false);
-  const [error,   setError]   = useState<string | null>(null);
+  const [saved,  setSaved]  = useState(false);
+  const [saving, setSaving] = useState(false);
+  const [error,  setError]  = useState<string | null>(null);
 
   const settings = (org?.settings ?? {}) as {
-    minAdvanceMinutes?:      number;
-    maxAdvanceDays?:         number;
-    cancellationPolicyText?: string;
-    cancellationHours?:      number;
+    minAdvanceMinutes?:         number;
+    maxAdvanceDays?:            number;
+    cancellationPolicyText?:    string;
+    cancellationHours?:         number;
     requireManualConfirmation?: boolean;
   };
 
@@ -216,12 +161,8 @@ export default function SettingsForm({
       body:    JSON.stringify(body),
     });
 
-    if (!res.ok) {
-      setError("Error al guardar. Intentá de nuevo.");
-    } else {
-      setSaved(true);
-      setTimeout(() => setSaved(false), 3000);
-    }
+    if (!res.ok) setError("Error al guardar. Intentá de nuevo.");
+    else { setSaved(true); setTimeout(() => setSaved(false), 3000); }
     setSaving(false);
   }
 
@@ -229,12 +170,12 @@ export default function SettingsForm({
 
   return (
     <div className="space-y-8">
-      {/* ── Business info ─────────────────────────────────────────────── */}
       <form onSubmit={handleSubmit} className="space-y-8">
         {error && (
           <p className="text-sm text-destructive bg-destructive/10 rounded-md px-4 py-2">{error}</p>
         )}
 
+        {/* ── Información general ─────────────────────────────────────── */}
         <section className="bg-background border rounded-xl p-6 space-y-4">
           <h2 className="font-semibold text-base">Información general</h2>
 
@@ -275,13 +216,11 @@ export default function SettingsForm({
 
           <div className="pt-1 text-sm text-muted-foreground">
             <span className="font-medium">URL pública:</span>{" "}
-            <code className="bg-muted px-1.5 py-0.5 rounded text-xs">
-              reunio.app/{org.slug}
-            </code>
+            <code className="bg-muted px-1.5 py-0.5 rounded text-xs">reunio.app/{org.slug}</code>
           </div>
         </section>
 
-        {/* ── Booking preferences ───────────────────────────────────────── */}
+        {/* ── Preferencias de reserva ──────────────────────────────────── */}
         <section className="bg-background border rounded-xl p-6 space-y-4">
           <h2 className="font-semibold text-base">Preferencias de reserva</h2>
 
@@ -331,8 +270,8 @@ export default function SettingsForm({
         </div>
       </form>
 
-      {/* ── Schedule section (separate save) ─────────────────────────── */}
-      <ScheduleSection staffList={staffList} schedulesByStaff={schedulesByStaff} />
+      {/* ── Horario del negocio (sección independiente) ──────────────── */}
+      <BusinessHoursSection initialRows={businessHours} />
     </div>
   );
 }
