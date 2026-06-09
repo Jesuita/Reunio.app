@@ -19,15 +19,8 @@ async function getOrgId(): Promise<{ orgId: string } | { error: string }> {
 }
 
 const StaffSchema = z.object({
-  name: z.string().min(1).max(100),
-  role: z.enum(["admin", "staff"]),
-  is_active: z.boolean().default(true),
-});
-
-const ScheduleSchema = z.object({
-  day_of_week: z.coerce.number().int().min(0).max(6),
-  start_time: z.string().regex(/^\d{2}:\d{2}$/),
-  end_time: z.string().regex(/^\d{2}:\d{2}$/),
+  name:      z.string().min(1).max(100),
+  role:      z.enum(["admin", "staff"]),
   is_active: z.boolean().default(true),
 });
 
@@ -43,14 +36,8 @@ export async function createStaff(
   if ("error" in auth) return { success: false, error: auth.error };
 
   const raw = Object.fromEntries(formData);
-  const parsed = StaffSchema.safeParse({
-    ...raw,
-    is_active: raw.is_active === "true",
-  });
-
-  if (!parsed.success) {
-    return { success: false, error: parsed.error.issues[0].message };
-  }
+  const parsed = StaffSchema.safeParse({ ...raw, is_active: raw.is_active === "true" });
+  if (!parsed.success) return { success: false, error: parsed.error.issues[0].message };
 
   const supabase = createClient();
   const { error } = await supabase.from("staff").insert({
@@ -73,14 +60,8 @@ export async function updateStaff(
   if ("error" in auth) return { success: false, error: auth.error };
 
   const raw = Object.fromEntries(formData);
-  const parsed = StaffSchema.safeParse({
-    ...raw,
-    is_active: raw.is_active !== "false",
-  });
-
-  if (!parsed.success) {
-    return { success: false, error: parsed.error.issues[0].message };
-  }
+  const parsed = StaffSchema.safeParse({ ...raw, is_active: raw.is_active !== "false" });
+  if (!parsed.success) return { success: false, error: parsed.error.issues[0].message };
 
   const supabase = createClient();
   const { error } = await supabase
@@ -95,58 +76,67 @@ export async function updateStaff(
   return { success: true };
 }
 
-export async function upsertSchedule(
-  staffId: string,
-  _prev: StaffFormState,
-  formData: FormData,
+/**
+ * saveScheduleDay — replaces ALL schedule rows for a given staff+day with the
+ * provided blocks (0 = day off, 1 = single block, 2 = split morning/afternoon).
+ *
+ * Called with plain objects from the client component (not FormData) so that
+ * multi-block data is easy to pass without encoding tricks.
+ */
+export type ScheduleBlock = { start_time: string; end_time: string };
+
+export async function saveScheduleDay(
+  staffId:    string,
+  dayOfWeek:  number,
+  blocks:     ScheduleBlock[],
 ): Promise<StaffFormState> {
-  const auth = await getOrgId();
-  if ("error" in auth) return { success: false, error: auth.error };
+  // Validate
+  if (dayOfWeek < 0 || dayOfWeek > 6) return { success: false, error: "Día inválido" };
+  if (blocks.length > 2) return { success: false, error: "Máximo 2 bloques por día" };
 
-  const raw = Object.fromEntries(formData);
-  const parsed = ScheduleSchema.safeParse({
-    ...raw,
-    is_active: raw.is_active !== "false",
-  });
-
-  if (!parsed.success) {
-    return { success: false, error: parsed.error.issues[0].message };
+  for (const b of blocks) {
+    if (!/^\d{2}:\d{2}$/.test(b.start_time) || !/^\d{2}:\d{2}$/.test(b.end_time)) {
+      return { success: false, error: "Formato de hora inválido (HH:MM)" };
+    }
+    if (b.start_time >= b.end_time) {
+      return { success: false, error: "La hora de inicio debe ser anterior al cierre" };
+    }
   }
 
-  const supabase = createClient();
-  const { error } = await supabase.from("schedules").upsert(
-    {
-      organization_id: auth.orgId,
-      staff_id: staffId,
-      ...parsed.data,
-      start_time: parsed.data.start_time + ":00",
-      end_time: parsed.data.end_time + ":00",
-    },
-    { onConflict: "organization_id,staff_id,day_of_week" },
-  );
+  // Validate no overlap between block1 and block2
+  if (blocks.length === 2 && blocks[0]!.end_time > blocks[1]!.start_time) {
+    return { success: false, error: "Los bloques no pueden superponerse: el turno de la mañana debe terminar antes del inicio de la tarde" };
+  }
 
-  if (error) return { success: false, error: error.message };
-
-  revalidatePath("/dashboard/staff");
-  return { success: true };
-}
-
-export async function deleteSchedule(
-  staffId: string,
-  dayOfWeek: number,
-): Promise<StaffFormState> {
   const auth = await getOrgId();
   if ("error" in auth) return { success: false, error: auth.error };
 
   const supabase = createClient();
-  const { error } = await supabase
+
+  // Delete all existing rows for this staff + day
+  const { error: delError } = await supabase
     .from("schedules")
-    .update({ is_active: false })
+    .delete()
     .eq("staff_id", staffId)
     .eq("organization_id", auth.orgId)
     .eq("day_of_week", dayOfWeek);
 
-  if (error) return { success: false, error: error.message };
+  if (delError) return { success: false, error: delError.message };
+
+  // Insert new blocks (if any)
+  if (blocks.length > 0) {
+    const rows = blocks.map((b) => ({
+      organization_id: auth.orgId,
+      staff_id:        staffId,
+      day_of_week:     dayOfWeek,
+      start_time:      b.start_time + ":00",
+      end_time:        b.end_time   + ":00",
+      is_active:       true,
+    }));
+
+    const { error: insError } = await supabase.from("schedules").insert(rows);
+    if (insError) return { success: false, error: insError.message };
+  }
 
   revalidatePath("/dashboard/staff");
   return { success: true };
