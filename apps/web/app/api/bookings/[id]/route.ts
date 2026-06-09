@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { createClient } from "@supabase/supabase-js";
+import { verifyBookingToken } from "@/lib/booking-token";
+import { notifyWaitlist } from "@/lib/waitlist";
 
 function getServiceClient() {
   return createClient(
@@ -36,8 +38,8 @@ export async function GET(
 
 // ── PATCH /api/bookings/[id] ──────────────────────────────────────────────────
 const patchSchema = z.discriminatedUnion("action", [
-  z.object({ action: z.literal("cancel") }),
-  z.object({ action: z.literal("reschedule"), startsAt: z.string().datetime() }),
+  z.object({ action: z.literal("cancel"), manageToken: z.string().optional() }),
+  z.object({ action: z.literal("reschedule"), startsAt: z.string().datetime(), manageToken: z.string().optional() }),
 ]);
 
 export async function PATCH(
@@ -63,6 +65,14 @@ export async function PATCH(
     return NextResponse.json({ error: "Booking not found" }, { status: 404 });
   }
 
+  // Auth: verify manageToken if provided (self-service flow), otherwise assume admin session
+  if (parsed.data.manageToken) {
+    const tokenPayload = await verifyBookingToken(decodeURIComponent(parsed.data.manageToken));
+    if (!tokenPayload || tokenPayload.bookingId !== params.id || tokenPayload.orgId !== existing.organization_id) {
+      return NextResponse.json({ error: "Token inválido o expirado." }, { status: 401 });
+    }
+  }
+
   if (existing.status === "cancelled" || existing.status === "completed") {
     return NextResponse.json(
       { error: `Cannot modify a booking with status '${existing.status}'.` },
@@ -81,6 +91,14 @@ export async function PATCH(
     if (error) {
       return NextResponse.json({ error: "Failed to cancel booking" }, { status: 500 });
     }
+
+    // Notify first person on waitlist for this service/date (fire-and-forget)
+    const bookingDate = existing.starts_at.slice(0, 10);
+    notifyWaitlist({
+      organizationId: existing.organization_id,
+      serviceId: existing.service_id,
+      date: bookingDate,
+    }).catch(console.error);
 
     return NextResponse.json({ booking: data });
   }

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { createClient } from "@supabase/supabase-js";
 import { computeAvailableSlots } from "@/lib/availability/engine";
+import { signBookingToken, buildManageUrl } from "@/lib/booking-token";
 import {
   fetchOrganization,
   fetchService,
@@ -141,11 +142,16 @@ export async function POST(req: NextRequest) {
       { booking_id: booking.id, channel: "whatsapp", type: "2h",           status: "pending" },
     ]);
 
-    // ── 6. TODO: Mercado Pago payment URL if deposit required ─────────────
+    // ── 6. Generate self-service management token ─────────────────────────
+    const manageToken = await signBookingToken(booking.id, organizationId);
+    const baseUrl = process.env["NEXT_PUBLIC_APP_URL"] ?? "http://localhost:8000";
+    const manageUrl = buildManageUrl(baseUrl, manageToken);
+
+    // ── 7. TODO: Mercado Pago payment URL if deposit required ─────────────
     // Will be implemented in Fase 4 (Pagos y WhatsApp)
     const paymentUrl: string | null = null;
 
-    return NextResponse.json({ booking, paymentUrl }, { status: 201 });
+    return NextResponse.json({ booking, paymentUrl, manageUrl }, { status: 201 });
   } catch (err) {
     console.error("[POST /api/bookings]", err);
     return NextResponse.json({ error: "Internal server error" }, { status: 500 });
