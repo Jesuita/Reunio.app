@@ -1,0 +1,26 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "Next.js — web app",
+      "runtimeExecutable": "npm",
+      "runtimeArgs": ["run", "dev"],
+      "cwd": "apps/web",
+      "port": 8000
+    },
+    {
+      "name": "Supabase — local stack",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["supabase", "start"],
+      "cwd": ".",
+      "port": 54321
+    },
+    {
+      "name": "Supabase Studio",
+      "runtimeExecutable": "npx",
+      "runtimeArgs": ["supabase", "start"],
+      "cwd": ".",
+      "port": 54323
+    }
+  ]
+}
