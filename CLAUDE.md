@@ -67,20 +67,53 @@ Fase 1 — Producto y arquitectura
 - [x] lib/supabase/server.ts + client.ts helpers
 
 ### En progreso
-- [ ] Fase 4 — Mercado Pago + WhatsApp API + recordatorios
+- [ ] Fase 6 — Beta, QA, go-to-market, landing page
 
 ### Completado recientemente
-- [x] Bloque D: JWT manage links (/booking/manage/[token]), waitlist API, cancel flow
-- [x] Fase 3: panel admin completo
-  - /dashboard mejorado: KPIs, barchart semana, agenda, actividad reciente, waitlist
-  - /dashboard/bookings: filtros múltiples, panel lateral, exportar CSV
-  - /dashboard/clients: CRM con búsqueda + /clients/[id] ficha con historial, notas, blacklist
-  - /dashboard/settings: configuración org + políticas de reserva
-  - /dashboard/reports: ingresos/ocupación/no-shows por período, breakdown por servicio y staff
-  - middleware.ts: scaffolding de permisos (activo en Fase 5)
+- [x] Fase 4: Mercado Pago + WhatsApp + recordatorios
+  - lib/mercadopago.ts: preference, refund, HMAC verification
+  - lib/whatsapp.ts: sendText/Template/Buttons/List, sendWhatsAppReminder
+  - lib/whatsapp-bot.ts: state machine completo (idle → completed)
+  - lib/reminders.ts: scheduleReminders + processReminders
+  - lib/email.ts: Resend transactional emails
+  - Webhooks: /api/webhooks/mercadopago, /api/webhooks/whatsapp, /api/webhooks/stripe
+  - Crons: /api/cron/reminders (15min), /api/cron/expire-bookings (5min)
+  - vercel.json con crons configurados
+  - Tests: 7/7 pasando (MP HMAC + WA HMAC)
+- [x] Fase 5: SaaS billing + onboarding + widget + API v1
+  - lib/plans.ts: PLANS + checkPlanLimit()
+  - lib/stripe.ts + Stripe Checkout + Customer Portal
+  - /dashboard/billing: comparación de planes, upgrade/portal
+  - /pricing: página pública con FAQ
+  - /register: wizard 4 pasos (cuenta → negocio → servicio → disponibilidad)
+  - /api/register: endpoint que crea org + staff + servicio + horarios
+  - /dashboard/widget: configuración + snippet embed
+  - public/widget.js: script drop-in con modal iframe
+  - API v1: /api/v1/bookings, /api/v1/availability, /api/v1/services, /api/v1/clients
+  - lib/api-auth.ts: Bearer token + SHA-256 hashing
+  - /api/organizations/[id]/api-keys: generar/revocar keys
+  - OnboardingChecklist.tsx: componente reutilizable con progreso circular
+
+### Completado en Fase 6
+- [x] Auth — Supabase Auth completo y funcionando:
+  - @supabase/ssr instalado; server.ts + client.ts actualizados con cookie-aware clients
+  - lib/auth.ts: requireAuth(), getOptionalAuth(), getAuthOrgId()
+  - lib/actions/auth.ts: loginAction, logoutAction, registerAction (con admin.createUser)
+  - middleware.ts: protege /dashboard/**, redirige a /login, rol staff → /dashboard/calendar
+  - app/login/page.tsx + LoginForm.tsx (useFormState de react-dom, no useActionState)
+  - app/register: wizard llama a registerAction (real auth + org creation)
+  - Migración: organization_members (user_id, org_id, role, RLS)
+  - Migración fix: 20260609000004_fix_rls_members.sql — RLS policies sin recursión infinita
+  - Todas las páginas del dashboard usan requireAuth() en lugar de ORG_ID hardcodeado
+  - Todas las Server Actions usan getOrgId() inline (no importan lib/auth.ts para evitar error de bundler)
+  - API Routes usan getAuthOrgId()
+  - LogoutButton.tsx en sidebar con logoutAction
+  - lib/plans.ts: createClient() importado dinámicamente dentro de checkPlanLimit() (no a nivel de módulo)
+  - Usuario demo: demo@reunio.app / demo1234 (vinculado a org El Corte Perfecto)
+  - Todas las rutas responden 200; login y dashboard verificados en browser
 
 ### Próximo paso
-Fase 4: Mercado Pago (señas), WhatsApp Business API vía 360dialog, recordatorios automáticos
+Landing page pública (/) + tests + deploy prep
 
 ### Decisiones tomadas
 (actualizar a medida que se toman decisiones de arquitectura)

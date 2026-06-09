@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
+import { requireAuth } from "@/lib/auth";
 import { Calendar, Users, TrendingUp, Clock, ArrowRight, AlertCircle } from "lucide-react";
 
-const ORG_ID = "00000000-0000-0000-0000-000000000010";
 
 function formatPrice(n: number) {
   return new Intl.NumberFormat("es-AR", {
@@ -17,6 +17,7 @@ function formatTime(iso: string) {
 }
 
 export default async function DashboardPage() {
+  const { organizationId: ORG_ID } = await requireAuth();
   const supabase = createClient();
   const now = new Date();
   const todayStr = now.toISOString().slice(0, 10);
@@ -169,7 +170,7 @@ export default async function DashboardPage() {
           <div className="text-sm text-muted-foreground mt-0.5">Personal activo</div>
           {nextBooking && (
             <div className="text-xs text-muted-foreground mt-1 truncate">
-              Próx: {formatTime(nextBooking.starts_at)} — {(nextBooking.clients as {name:string}|null)?.name}
+              Próx: {formatTime(nextBooking.starts_at)} — {(nextBooking.clients as unknown as {name:string}|null)?.name}
             </div>
           )}
         </div>
@@ -213,8 +214,8 @@ export default async function DashboardPage() {
                     {formatTime(b.starts_at)}
                   </span>
                   <div className="flex-1 min-w-0">
-                    <p className="text-sm font-medium truncate">{(b.clients as {name:string}|null)?.name}</p>
-                    <p className="text-xs text-muted-foreground truncate">{(b.services as {name:string}|null)?.name} · {(b.staff as {name:string}|null)?.name}</p>
+                    <p className="text-sm font-medium truncate">{(b.clients as unknown as {name:string}|null)?.name}</p>
+                    <p className="text-xs text-muted-foreground truncate">{(b.services as unknown as {name:string}|null)?.name} · {(b.staff as unknown as {name:string}|null)?.name}</p>
                   </div>
                   <span className={`text-xs px-2 py-0.5 rounded-full shrink-0 ${
                     b.status === "confirmed" ? "bg-green-100 text-green-700" :
@@ -242,9 +243,9 @@ export default async function DashboardPage() {
               <div key={b.id} className="flex items-start gap-2">
                 <div className="w-1.5 h-1.5 rounded-full bg-green-500 mt-1.5 shrink-0" />
                 <div className="min-w-0">
-                  <p className="text-sm font-medium truncate">{(b.clients as {name:string}|null)?.name}</p>
+                  <p className="text-sm font-medium truncate">{(b.clients as unknown as {name:string}|null)?.name}</p>
                   <p className="text-xs text-muted-foreground truncate">
-                    {(b.services as {name:string}|null)?.name} · {formatTime(b.starts_at)}
+                    {(b.services as unknown as {name:string}|null)?.name} · {formatTime(b.starts_at)}
                     {b.source && ` · ${SOURCE_LABEL[b.source] ?? b.source}`}
                   </p>
                 </div>
@@ -266,9 +267,9 @@ export default async function DashboardPage() {
               <div key={b.id} className="flex items-start gap-2">
                 <div className="w-1.5 h-1.5 rounded-full bg-red-400 mt-1.5 shrink-0" />
                 <div className="min-w-0">
-                  <p className="text-sm font-medium truncate">{(b.clients as {name:string}|null)?.name}</p>
+                  <p className="text-sm font-medium truncate">{(b.clients as unknown as {name:string}|null)?.name}</p>
                   <p className="text-xs text-muted-foreground truncate">
-                    {(b.services as {name:string}|null)?.name} · {formatTime(b.starts_at)}
+                    {(b.services as unknown as {name:string}|null)?.name} · {formatTime(b.starts_at)}
                   </p>
                 </div>
               </div>
@@ -294,9 +295,9 @@ export default async function DashboardPage() {
               <div key={i} className="flex items-start gap-2">
                 <AlertCircle className="w-3.5 h-3.5 text-amber-500 mt-0.5 shrink-0" />
                 <div className="min-w-0">
-                  <p className="text-sm font-medium truncate">{(w.clients as {name:string}|null)?.name}</p>
+                  <p className="text-sm font-medium truncate">{(w.clients as unknown as {name:string}|null)?.name}</p>
                   <p className="text-xs text-muted-foreground truncate">
-                    {(w.services as {name:string}|null)?.name} · {w.preferred_date}
+                    {(w.services as unknown as {name:string}|null)?.name} · {w.preferred_date}
                   </p>
                 </div>
               </div>

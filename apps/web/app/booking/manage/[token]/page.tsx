@@ -38,7 +38,7 @@ export default async function ManageBookingPage({ params }: Props) {
 
   return (
     <ManageBookingClient
-      booking={booking as BookingDetail}
+      booking={booking as unknown as BookingDetail}
       orgName={org?.name ?? ""}
       orgSlug={org?.slug ?? ""}
       token={params.token}

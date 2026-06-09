@@ -495,7 +495,7 @@ async function handleMyBookings(from: string, orgId: string, timezone: string) {
     const time = new Date(b.starts_at).toLocaleTimeString("es-AR", {
       hour: "2-digit", minute: "2-digit", timeZone: "UTC",
     });
-    return `• ${date} ${time} — ${(b.services as {name:string}|null)?.name} con ${(b.staff as {name:string}|null)?.name}`;
+    return `• ${date} ${time} — ${(b.services as unknown as {name:string}|null)?.name} con ${(b.staff as unknown as {name:string}|null)?.name}`;
   });
 
   await sendText(from, `Tus próximos turnos:\n\n${lines.join("\n")}`);
@@ -535,6 +535,6 @@ async function handleCancelNextBooking(from: string, orgId: string, timezone: st
   });
   await sendText(
     from,
-    `Tu turno de *${(booking.services as {name:string}|null)?.name}* del *${date}* fue cancelado. ¡Hasta la próxima!`,
+    `Tu turno de *${(booking.services as unknown as {name:string}|null)?.name}* del *${date}* fue cancelado. ¡Hasta la próxima!`,
   );
 }

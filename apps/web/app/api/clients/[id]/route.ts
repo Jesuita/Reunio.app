@@ -1,8 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
-
-const ORG_ID = "00000000-0000-0000-0000-000000000010";
+import { getAuthOrgId } from "@/lib/auth";
 
 const patchSchema = z.object({
   notes:          z.string().optional(),
@@ -13,6 +12,11 @@ const patchSchema = z.object({
 });
 
 export async function PATCH(req: NextRequest, { params }: { params: { id: string } }) {
+  const auth = await getAuthOrgId();
+  if ("error" in auth) {
+    return NextResponse.json({ error: auth.error }, { status: auth.status });
+  }
+
   const json = await req.json().catch(() => null);
   const parsed = patchSchema.safeParse(json);
   if (!parsed.success) {
@@ -24,7 +28,7 @@ export async function PATCH(req: NextRequest, { params }: { params: { id: string
     .from("clients")
     .update(parsed.data)
     .eq("id", params.id)
-    .eq("organization_id", ORG_ID)
+    .eq("organization_id", auth.orgId)
     .select()
     .single();
 

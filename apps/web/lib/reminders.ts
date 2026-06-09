@@ -93,7 +93,7 @@ export async function processReminders(): Promise<{ sent: number; failed: number
 
   for (const reminder of due ?? []) {
     try {
-      await dispatchReminder(reminder as ReminderRow);
+      await dispatchReminder(reminder as unknown as ReminderRow);
       await supabase
         .from("reminders")
         .update({ status: "sent", sent_at: new Date().toISOString() })

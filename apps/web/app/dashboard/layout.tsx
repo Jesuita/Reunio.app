@@ -1,18 +1,24 @@
 import Link from "next/link";
-import { Calendar, Scissors, Users, LayoutDashboard, BookOpen, UserSquare2, BarChart2, Settings } from "lucide-react";
+import { Calendar, Scissors, Users, LayoutDashboard, BookOpen, UserSquare2, BarChart2, Settings, CreditCard, Code2 } from "lucide-react";
+import { requireAuth } from "@/lib/auth";
+import LogoutButton from "./LogoutButton";
 
 const navItems = [
-  { href: "/dashboard",           label: "Resumen",   icon: LayoutDashboard },
-  { href: "/dashboard/calendar",  label: "Agenda",    icon: Calendar },
-  { href: "/dashboard/bookings",  label: "Turnos",    icon: BookOpen },
-  { href: "/dashboard/clients",   label: "Clientes",  icon: UserSquare2 },
-  { href: "/dashboard/services",  label: "Servicios", icon: Scissors },
-  { href: "/dashboard/staff",     label: "Personal",  icon: Users },
-  { href: "/dashboard/reports",   label: "Reportes",  icon: BarChart2 },
-  { href: "/dashboard/settings",  label: "Config",    icon: Settings },
+  { href: "/dashboard",           label: "Resumen",      icon: LayoutDashboard },
+  { href: "/dashboard/calendar",  label: "Agenda",       icon: Calendar },
+  { href: "/dashboard/bookings",  label: "Turnos",       icon: BookOpen },
+  { href: "/dashboard/clients",   label: "Clientes",     icon: UserSquare2 },
+  { href: "/dashboard/services",  label: "Servicios",    icon: Scissors },
+  { href: "/dashboard/staff",     label: "Personal",     icon: Users },
+  { href: "/dashboard/reports",   label: "Reportes",     icon: BarChart2 },
+  { href: "/dashboard/settings",  label: "Config",       icon: Settings },
+  { href: "/dashboard/billing",   label: "Facturación",  icon: CreditCard },
+  { href: "/dashboard/widget",    label: "Widget",       icon: Code2 },
 ];
 
-export default function DashboardLayout({ children }: { children: React.ReactNode }) {
+export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
+  const user = await requireAuth();
+
   return (
     <div className="flex min-h-screen bg-muted/30">
       {/* Sidebar */}
@@ -33,13 +39,19 @@ export default function DashboardLayout({ children }: { children: React.ReactNod
             </Link>
           ))}
         </nav>
-        <div className="p-4 border-t">
-          <Link
-            href="/"
-            className="text-xs text-muted-foreground hover:text-foreground transition-colors"
-          >
-            ← Volver al sitio
-          </Link>
+        <div className="p-4 border-t space-y-2">
+          {/* User info */}
+          <p className="text-xs text-muted-foreground truncate px-1">{user.email}</p>
+          <div className="flex items-center justify-between">
+            <Link
+              href={`/${user.organizationSlug}`}
+              className="text-xs text-muted-foreground hover:text-foreground transition-colors"
+              target="_blank"
+            >
+              Ver página ↗
+            </Link>
+            <LogoutButton />
+          </div>
         </div>
       </aside>
 

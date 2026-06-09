@@ -101,7 +101,7 @@ export default function ClientsList({
                       <div className="font-medium flex items-center gap-1.5">
                         {c.name}
                         {c.is_blacklisted && (
-                          <AlertTriangle className="w-3.5 h-3.5 text-destructive" title="Bloqueado" />
+                          <span title="Bloqueado"><AlertTriangle className="w-3.5 h-3.5 text-destructive" /></span>
                         )}
                       </div>
                       {c.tags && c.tags.length > 0 && (

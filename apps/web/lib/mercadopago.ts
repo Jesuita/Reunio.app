@@ -8,7 +8,8 @@
  * Docs: https://www.mercadopago.com.ar/developers/es/docs/checkout-pro
  */
 
-import { MercadoPagoConfig, Preference, Payment, Refund } from "mercadopago";
+import { MercadoPagoConfig, Preference, Payment, PaymentRefund } from "mercadopago";
+const Refund = PaymentRefund;
 import crypto from "crypto";
 
 function getMPClient() {

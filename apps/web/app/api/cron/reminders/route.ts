@@ -8,9 +8,7 @@ import { processReminders } from "@/lib/reminders";
  * Secured with CRON_SECRET header.
  *
  * vercel.json configuration:
- * {
- *   "crons": [{ "path": "/api/cron/reminders", "schedule": "*/15 * * * *" }]
- * }
+ * vercel.json: schedule "* /15 * * * *" (every 15 min)
  */
 export async function GET(req: NextRequest) {
   const authHeader = req.headers.get("authorization");

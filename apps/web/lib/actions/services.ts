@@ -4,8 +4,19 @@ import { revalidatePath } from "next/cache";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 
-// Demo org — in production comes from session
-const ORG_ID = "00000000-0000-0000-0000-000000000010";
+/** Inline helper — avoids importing lib/auth.ts (server-only) from this "use server" file */
+async function getOrgId(): Promise<{ orgId: string } | { error: string }> {
+  const supabase = createClient();
+  const { data: { user } } = await supabase.auth.getUser();
+  if (!user) return { error: "Unauthorized" };
+  const { data: member } = await supabase
+    .from("organization_members")
+    .select("organization_id")
+    .eq("user_id", user.id)
+    .single();
+  if (!member) return { error: "No organization found" };
+  return { orgId: member.organization_id as string };
+}
 
 const ServiceSchema = z.object({
   name: z.string().min(1).max(100),
@@ -26,6 +37,9 @@ export async function createService(
   _prev: ServiceFormState,
   formData: FormData,
 ): Promise<ServiceFormState> {
+  const auth = await getOrgId();
+  if ("error" in auth) return { success: false, error: auth.error };
+
   const raw = Object.fromEntries(formData);
   const parsed = ServiceSchema.safeParse({
     ...raw,
@@ -40,7 +54,7 @@ export async function createService(
   const supabase = createClient();
   const { error } = await supabase
     .from("services")
-    .insert({ ...parsed.data, organization_id: ORG_ID });
+    .insert({ ...parsed.data, organization_id: auth.orgId });
 
   if (error) return { success: false, error: error.message };
 
@@ -53,6 +67,9 @@ export async function updateService(
   _prev: ServiceFormState,
   formData: FormData,
 ): Promise<ServiceFormState> {
+  const auth = await getOrgId();
+  if ("error" in auth) return { success: false, error: auth.error };
+
   const raw = Object.fromEntries(formData);
   const parsed = ServiceSchema.safeParse({
     ...raw,
@@ -69,7 +86,7 @@ export async function updateService(
     .from("services")
     .update(parsed.data)
     .eq("id", id)
-    .eq("organization_id", ORG_ID);
+    .eq("organization_id", auth.orgId);
 
   if (error) return { success: false, error: error.message };
 
@@ -78,12 +95,15 @@ export async function updateService(
 }
 
 export async function deleteService(id: string): Promise<ServiceFormState> {
+  const auth = await getOrgId();
+  if ("error" in auth) return { success: false, error: auth.error };
+
   const supabase = createClient();
   const { error } = await supabase
     .from("services")
     .update({ is_active: false })
     .eq("id", id)
-    .eq("organization_id", ORG_ID);
+    .eq("organization_id", auth.orgId);
 
   if (error) return { success: false, error: error.message };
 

@@ -1,9 +1,10 @@
 import { createClient } from "@/lib/supabase/server";
+import { requireAuth } from "@/lib/auth";
 import SettingsForm from "./SettingsForm";
 
-const ORG_ID = "00000000-0000-0000-0000-000000000010";
 
 export default async function SettingsPage() {
+  const { organizationId: ORG_ID } = await requireAuth();
   const supabase = createClient();
   const { data: org } = await supabase
     .from("organizations")

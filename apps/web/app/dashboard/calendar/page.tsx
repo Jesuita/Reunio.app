@@ -1,13 +1,14 @@
 import { createClient } from "@/lib/supabase/server";
+import { requireAuth } from "@/lib/auth";
 import CalendarView from "./CalendarView";
 
-const ORG_ID = "00000000-0000-0000-0000-000000000010";
 
 export default async function CalendarPage({
   searchParams,
 }: {
   searchParams: { date?: string };
 }) {
+  const { organizationId: ORG_ID } = await requireAuth();
   const supabase = createClient();
 
   // Default to today in the org's timezone
@@ -48,7 +49,7 @@ export default async function CalendarPage({
       </div>
       <CalendarView
         date={targetDate}
-        bookings={(bookings ?? []) as BookingRow[]}
+        bookings={(bookings ?? []) as unknown as BookingRow[]}
         staffMembers={staffMembers ?? []}
         orgId={ORG_ID}
       />

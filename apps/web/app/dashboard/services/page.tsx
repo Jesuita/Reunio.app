@@ -1,9 +1,10 @@
 import { createClient } from "@/lib/supabase/server";
+import { requireAuth } from "@/lib/auth";
 import ServicesList from "./ServicesList";
 
-const ORG_ID = "00000000-0000-0000-0000-000000000010";
 
 export default async function ServicesPage() {
+  const { organizationId: ORG_ID } = await requireAuth();
   const supabase = createClient();
   const { data: services } = await supabase
     .from("services")

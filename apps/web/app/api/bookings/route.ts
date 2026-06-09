@@ -3,6 +3,8 @@ import { z } from "zod";
 import { createClient } from "@supabase/supabase-js";
 import { computeAvailableSlots } from "@/lib/availability/engine";
 import { signBookingToken, buildManageUrl } from "@/lib/booking-token";
+import { createDepositPreference } from "@/lib/mercadopago";
+import { scheduleReminders } from "@/lib/reminders";
 import {
   fetchOrganization,
   fetchService,
@@ -135,21 +137,42 @@ export async function POST(req: NextRequest) {
 
     if (bookingError) throw new Error(`create booking: ${bookingError.message}`);
 
-    // ── 5. Enqueue reminders ───────────────────────────────────────────────
-    await sb.from("reminders").insert([
-      { booking_id: booking.id, channel: "whatsapp", type: "confirmation", status: "pending" },
-      { booking_id: booking.id, channel: "whatsapp", type: "24h",          status: "pending" },
-      { booking_id: booking.id, channel: "whatsapp", type: "2h",           status: "pending" },
-    ]);
+    // ── 5. Schedule reminders (only for confirmed bookings; pending wait for payment) ──
+    if (bookingStatus === "confirmed") {
+      await scheduleReminders({
+        bookingId: booking.id,
+        startsAt:  startsAt,
+        endsAt:    endsAt,
+      });
+    }
 
     // ── 6. Generate self-service management token ─────────────────────────
     const manageToken = await signBookingToken(booking.id, organizationId);
     const baseUrl = process.env["NEXT_PUBLIC_APP_URL"] ?? "http://localhost:8000";
     const manageUrl = buildManageUrl(baseUrl, manageToken);
 
-    // ── 7. TODO: Mercado Pago payment URL if deposit required ─────────────
-    // Will be implemented in Fase 4 (Pagos y WhatsApp)
-    const paymentUrl: string | null = null;
+    // ── 7. Mercado Pago payment URL if deposit required ───────────────────
+    let paymentUrl: string | null = null;
+    if (requiresDeposit) {
+      try {
+        // Fetch additional service fields for MP preference
+        const sb2 = createClient(process.env["NEXT_PUBLIC_SUPABASE_URL"]!, process.env["SUPABASE_SERVICE_ROLE_KEY"]!);
+        const { data: svcFull } = await sb2.from("services").select("name, price").eq("id", serviceId).single();
+        const depositAmount = service.depositAmount ?? Math.round(Number(svcFull?.price ?? 0) * (service.depositPercent ?? 0) / 100);
+        const { initPoint } = await createDepositPreference({
+          bookingId:        booking.id,
+          serviceTitle:     svcFull?.name ?? "Servicio",
+          depositAmount,
+          clientEmail:      client.email,
+          backUrlBase:      baseUrl,
+          expiresInMinutes: 30,
+        });
+        paymentUrl = initPoint;
+      } catch (err) {
+        console.error("[bookings] MP preference error:", err);
+        // Non-fatal: booking was created, client can pay later
+      }
+    }
 
     return NextResponse.json({ booking, paymentUrl, manageUrl }, { status: 201 });
   } catch (err) {

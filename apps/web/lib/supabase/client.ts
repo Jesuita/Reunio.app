@@ -1,11 +1,11 @@
-import { createClient as createSupabaseClient } from "@supabase/supabase-js";
+import { createBrowserClient } from "@supabase/ssr";
 
 /**
- * Browser-side Supabase client using the anon key.
- * Use only in Client Components (Realtime, client-side queries).
+ * Browser-side Supabase client (SSR-aware).
+ * Use only in Client Components.
  */
 export function createClient() {
-  return createSupabaseClient(
+  return createBrowserClient(
     process.env["NEXT_PUBLIC_SUPABASE_URL"]!,
     process.env["NEXT_PUBLIC_SUPABASE_ANON_KEY"]!,
   );

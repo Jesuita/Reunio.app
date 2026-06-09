@@ -1,10 +1,10 @@
 import { notFound } from "next/navigation";
 import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
+import { requireAuth } from "@/lib/auth";
 import { ArrowLeft, Phone, Mail, Calendar, TrendingUp, AlertTriangle } from "lucide-react";
 import ClientActions from "./ClientActions";
 
-const ORG_ID = "00000000-0000-0000-0000-000000000010";
 
 function formatDate(iso: string) {
   return new Date(iso).toLocaleDateString("es-AR", {
@@ -35,6 +35,7 @@ const STATUS_LABELS: Record<string, string> = {
 };
 
 export default async function ClientProfilePage({ params }: { params: { id: string } }) {
+  const { organizationId: ORG_ID } = await requireAuth();
   const supabase = createClient();
 
   const { data: client } = await supabase
@@ -61,7 +62,7 @@ export default async function ClientProfilePage({ params }: { params: { id: stri
   const nonCancelled = (bookings ?? []).filter((b) => b.status !== "cancelled");
   const completed    = (bookings ?? []).filter((b) => b.status === "completed");
   const noShows      = (bookings ?? []).filter((b) => b.status === "no_show");
-  const totalSpent   = completed.reduce((sum, b) => sum + ((b.services as {price:number}|null)?.price ?? 0), 0);
+  const totalSpent   = completed.reduce((sum, b) => sum + ((b.services as unknown as {price:number}|null)?.price ?? 0), 0);
   const attendanceRate = nonCancelled.length > 0
     ? Math.round(((nonCancelled.length - noShows.length) / nonCancelled.length) * 100)
     : 100;
@@ -151,8 +152,8 @@ export default async function ClientProfilePage({ params }: { params: { id: stri
             ) : (
               <div className="divide-y">
                 {(bookings ?? []).map((b) => {
-                  const svc = b.services as { name: string; color: string; price: number } | null;
-                  const stf = b.staff as { name: string } | null;
+                  const svc = b.services as unknown as { name: string; color: string; price: number } | null;
+                  const stf = b.staff as unknown as { name: string } | null;
                   return (
                     <div key={b.id} className="px-5 py-4 hover:bg-muted/10 transition-colors">
                       <div className="flex items-start justify-between gap-4">

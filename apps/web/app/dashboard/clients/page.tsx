@@ -1,13 +1,14 @@
 import { createClient } from "@/lib/supabase/server";
+import { requireAuth } from "@/lib/auth";
 import ClientsList from "./ClientsList";
 
-const ORG_ID = "00000000-0000-0000-0000-000000000010";
 
 export default async function ClientsPage({
   searchParams,
 }: {
   searchParams: { q?: string };
 }) {
+  const { organizationId: ORG_ID } = await requireAuth();
   const supabase = createClient();
 
   // Get clients with aggregated booking stats
@@ -22,7 +23,7 @@ export default async function ClientsPage({
 
   // Enrich with stats
   const enriched = (clients ?? []).map((c) => {
-    const bookings = (c.bookings ?? []) as Array<{
+    const bookings = (c.bookings ?? []) as unknown as Array<{
       id: string; status: string; starts_at: string;
       services: { name: string; price: number } | null;
     }>;

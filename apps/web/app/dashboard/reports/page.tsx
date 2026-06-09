@@ -1,13 +1,14 @@
 import { createClient } from "@/lib/supabase/server";
+import { requireAuth } from "@/lib/auth";
 import ReportsView from "./ReportsView";
 
-const ORG_ID = "00000000-0000-0000-0000-000000000010";
 
 export default async function ReportsPage({
   searchParams,
 }: {
   searchParams: { period?: string };
 }) {
+  const { organizationId: ORG_ID } = await requireAuth();
   const supabase = createClient();
   const period = searchParams.period ?? "month";
 
@@ -44,7 +45,7 @@ export default async function ReportsPage({
         <h1 className="text-2xl font-bold">Reportes</h1>
       </div>
       <ReportsView
-        bookings={(bookings ?? []) as ReportBooking[]}
+        bookings={(bookings ?? []) as unknown as ReportBooking[]}
         staffMembers={staffMembers ?? []}
         services={services ?? []}
         period={period}

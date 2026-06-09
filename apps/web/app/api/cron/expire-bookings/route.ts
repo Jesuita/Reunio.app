@@ -8,7 +8,7 @@ import { notifyWaitlist } from "@/lib/waitlist";
  * Called every 5 minutes. Cancels pending bookings with unpaid deposits
  * that have been waiting more than 30 minutes (configurable per org).
  *
- * vercel.json: { "path": "/api/cron/expire-bookings", "schedule": "*/5 * * * *" }
+ * vercel.json: schedule "* /5 * * * *" (every 5 min)
  */
 export async function GET(req: NextRequest) {
   const authHeader = req.headers.get("authorization");

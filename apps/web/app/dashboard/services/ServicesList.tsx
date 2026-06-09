@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useActionState } from "react";
+import { useState } from "react";
+import { useFormState, useFormStatus } from "react-dom";
 import { createService, updateService, deleteService, type ServiceFormState } from "@/lib/actions/services";
 import { Button } from "@/components/ui/button";
 import { Plus, Pencil, EyeOff, Eye } from "lucide-react";
@@ -44,7 +45,7 @@ function ServiceForm({ service, onClose }: ServiceFormProps) {
     ? updateService.bind(null, service.id)
     : createService;
 
-  const [state, formAction, pending] = useActionState<ServiceFormState, FormData>(
+  const [state, formAction, pending] = useFormState<ServiceFormState, FormData>(
     action,
     { success: false, error: "" } as ServiceFormState,
   );

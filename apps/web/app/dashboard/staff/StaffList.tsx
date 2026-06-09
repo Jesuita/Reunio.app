@@ -1,6 +1,7 @@
 "use client";
 
-import { useState, useActionState } from "react";
+import { useState } from "react";
+import { useFormState, useFormStatus } from "react-dom";
 import { createStaff, updateStaff, upsertSchedule, deleteSchedule, type StaffFormState } from "@/lib/actions/staff";
 import { Button } from "@/components/ui/button";
 import { Plus, Pencil, ChevronDown, ChevronRight } from "lucide-react";
@@ -28,7 +29,7 @@ function timeStr(t: string) {
 
 function StaffForm({ member, onClose }: { member?: StaffMember; onClose: () => void }) {
   const action = member ? updateStaff.bind(null, member.id) : createStaff;
-  const [state, formAction, pending] = useActionState<StaffFormState, FormData>(
+  const [state, formAction, pending] = useFormState<StaffFormState, FormData>(
     action,
     { success: false, error: "" } as StaffFormState,
   );
@@ -98,7 +99,7 @@ function ScheduleForm({ staffId, schedule, dayOfWeek, onClose }: {
   onClose: () => void;
 }) {
   const action = upsertSchedule.bind(null, staffId);
-  const [state, formAction, pending] = useActionState<StaffFormState, FormData>(
+  const [state, formAction, pending] = useFormState<StaffFormState, FormData>(
     action,
     { success: false, error: "" } as StaffFormState,
   );

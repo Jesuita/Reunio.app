@@ -40,7 +40,7 @@ type Props = {
 };
 
 export default function ManageBookingClient({ booking, orgName, orgSlug, token }: Props) {
-  const [status, setStatus] = useState(booking.status);
+  const [status, setStatus] = useState<string>(booking.status as string);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [showConfirmCancel, setShowConfirmCancel] = useState(false);
@@ -134,7 +134,7 @@ export default function ManageBookingClient({ booking, orgName, orgSlug, token }
           </div>
 
           {/* Actions */}
-          {!isPast && isCancellable && status !== "cancelled" && (
+          {!isPast && isCancellable && (status as string) !== "cancelled" && (
             <div className="px-5 pb-5">
               {error && (
                 <p className="text-sm text-destructive mb-3 bg-destructive/10 rounded-md px-3 py-2">

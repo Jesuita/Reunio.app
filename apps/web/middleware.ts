@@ -1,42 +1,80 @@
 import { NextRequest, NextResponse } from "next/server";
+import { createServerClient } from "@supabase/ssr";
 
-/**
- * Role-based access middleware.
- *
- * Current state: pass-through (no auth implemented yet).
- * In Fase 5 this will verify the Supabase session JWT and check the user's
- * role against the route:
- *
- *  - /dashboard/settings → owner | admin
- *  - /dashboard/reports  → owner | admin
- *  - /dashboard/clients  → owner | admin
- *  - /dashboard/bookings → owner | admin | staff (own bookings only via RLS)
- *  - /dashboard/calendar → all roles
- *
- * Staff role → redirect to /dashboard/calendar if they hit restricted routes.
- */
-export function middleware(req: NextRequest) {
+const ADMIN_ONLY = [
+  "/dashboard/settings",
+  "/dashboard/reports",
+  "/dashboard/clients",
+  "/dashboard/billing",
+  "/dashboard/widget",
+];
+
+export async function middleware(req: NextRequest) {
   const { pathname } = req.nextUrl;
 
-  // TODO (Fase 5): verify Supabase session cookie
-  // const session = await getSession(req);
-  // if (!session) return NextResponse.redirect(new URL("/login", req.url));
+  let response = NextResponse.next({
+    request: req,
+  });
 
-  // Restricted routes — will enforce owner/admin in Fase 5
-  const adminOnlyPaths = [
-    "/dashboard/settings",
-    "/dashboard/reports",
-    "/dashboard/clients",
-  ];
+  // Create a Supabase client that can read/write session cookies
+  const supabase = createServerClient(
+    process.env["NEXT_PUBLIC_SUPABASE_URL"]!,
+    process.env["NEXT_PUBLIC_SUPABASE_ANON_KEY"]!,
+    {
+      cookies: {
+        getAll() {
+          return req.cookies.getAll();
+        },
+        setAll(cookiesToSet) {
+          cookiesToSet.forEach(({ name, value }) =>
+            req.cookies.set(name, value)
+          );
+          response = NextResponse.next({ request: req });
+          cookiesToSet.forEach(({ name, value, options }) =>
+            response.cookies.set(name, value, options)
+          );
+        },
+      },
+    }
+  );
 
-  if (adminOnlyPaths.some((p) => pathname.startsWith(p))) {
-    // TODO: check session.role !== "staff"
-    // For now: allow all
+  // Refresh session — important: must call getUser() not getSession()
+  const { data: { user } } = await supabase.auth.getUser();
+
+  // Protect all /dashboard/** routes
+  if (pathname.startsWith("/dashboard")) {
+    if (!user) {
+      const loginUrl = new URL("/login", req.url);
+      loginUrl.searchParams.set("next", pathname);
+      return NextResponse.redirect(loginUrl);
+    }
   }
 
-  return NextResponse.next();
+  // Redirect authenticated users away from auth pages
+  if ((pathname === "/login" || pathname === "/register") && user) {
+    return NextResponse.redirect(new URL("/dashboard", req.url));
+  }
+
+  // Admin-only paths: owners and admins only (staff → redirect to calendar)
+  if (ADMIN_ONLY.some((p) => pathname.startsWith(p)) && user) {
+    const { data: member } = await supabase
+      .from("organization_members")
+      .select("role")
+      .eq("user_id", user.id)
+      .single();
+
+    if (member?.role === "staff") {
+      return NextResponse.redirect(new URL("/dashboard/calendar", req.url));
+    }
+  }
+
+  return response;
 }
 
 export const config = {
-  matcher: ["/dashboard/:path*"],
+  matcher: [
+    "/dashboard/:path*",
+    "/login",
+    "/register",
+  ],
 };

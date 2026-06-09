@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
+import { requireAuth } from "@/lib/auth";
 import BookingsList from "./BookingsList";
 
-const ORG_ID = "00000000-0000-0000-0000-000000000010";
 
 export type BookingRow = {
   id: string;
@@ -29,6 +29,7 @@ export default async function BookingsPage({
     source?: string;
   };
 }) {
+  const { organizationId: ORG_ID } = await requireAuth();
   const supabase = createClient();
 
   let query = supabase
@@ -63,7 +64,7 @@ export default async function BookingsPage({
         <p className="text-muted-foreground text-sm mt-1">{bookings?.length ?? 0} resultados</p>
       </div>
       <BookingsList
-        bookings={(bookings ?? []) as BookingRow[]}
+        bookings={(bookings ?? []) as unknown as BookingRow[]}
         staffMembers={staffMembers ?? []}
         services={services ?? []}
         currentFilters={searchParams}
