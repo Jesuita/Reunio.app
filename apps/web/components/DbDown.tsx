@@ -1,7 +1,7 @@
 import Link from "next/link";
 
 interface Props {
-  context?: "directory" | "booking" | "business" | "generic";
+  context?: "directory" | "booking" | "business" | "generic" | "categories";
   /** Only used internally in dev to log, never shown to users */
   errorMessage?: string;
 }
@@ -26,6 +26,11 @@ const COPY: Record<NonNullable<Props["context"]>, { emoji: string; title: string
     emoji: "😕",
     title: "Algo salió mal",
     desc: "Tuvimos un problema inesperado. Nuestro equipo ya fue notificado. Por favor volvé a intentarlo en unos minutos.",
+  },
+  categories: {
+    emoji: "🗂️",
+    title: "No se pudieron cargar las categorías",
+    desc: "Tuvimos un problema al cargar las categorías. Por favor volvé a intentarlo en unos minutos.",
   },
 };
 

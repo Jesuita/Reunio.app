@@ -201,7 +201,7 @@ export default async function ExplorarPage({ searchParams }: PageProps) {
   const featuredOrgs  = orgs.filter((o) => o.is_featured);
   const regularOrgs   = orgs.filter((o) => !o.is_featured);
   const showMatch     = !!filters.q;
-  const totalListed   = [...rubroCounts.values()].reduce((a, b) => a + b, 0);
+  const totalListed   = Array.from(rubroCounts.values()).reduce((a, b) => a + b, 0);
 
   return (
     <div className="min-h-screen bg-gray-50">
@@ -293,7 +293,7 @@ export default async function ExplorarPage({ searchParams }: PageProps) {
                   Explorar por rubro
                 </h2>
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-3">
-                  {[...rubroCounts.entries()].sort((a, b) => b[1] - a[1]).map(([r, count]) => {
+                  {Array.from(rubroCounts.entries()).sort((a, b) => b[1] - a[1]).map(([r, count]) => {
                     const cfg = getRubroConfig(r);
                     return (
                       <Link key={r} href={`/explorar?rubro=${encodeURIComponent(r)}`}

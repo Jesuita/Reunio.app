@@ -14,9 +14,9 @@ function maybeCleanup() {
   const now = Date.now();
   if (now - lastCleanup < 5 * 60_000) return;
   lastCleanup = now;
-  for (const [key, entry] of store) {
+  store.forEach((entry, key) => {
     if (entry.resetAt < now) store.delete(key);
-  }
+  });
 }
 
 export type RateLimitOptions = {

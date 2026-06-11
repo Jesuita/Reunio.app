@@ -167,7 +167,7 @@ describe("POST /api/bookings", () => {
         }
         return { select: vi.fn().mockReturnThis(), eq: vi.fn().mockReturnThis() };
       },
-    } as ReturnType<typeof import("@supabase/supabase-js").createClient>);
+    } as unknown as ReturnType<typeof import("@supabase/supabase-js").createClient>);
 
     const { POST } = await import("./route");
     const res = await POST(makeRequest(validBody));

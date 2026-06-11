@@ -171,7 +171,7 @@ function ServicesPanel({
   function save() {
     setError(null);
     startTransition(async () => {
-      const result = await saveStaffServices(staffId, [...selected]);
+      const result = await saveStaffServices(staffId, Array.from(selected));
       if (!result.success) setError(result.error);
       else setSaved(true);
     });

@@ -24,7 +24,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
       .eq("is_active", true)
       .limit(500);
 
-    const orgRoutes: MetadataRoute.Sitemap = (orgs ?? []).map((o) => ({
+    const orgRoutes: MetadataRoute.Sitemap = (orgs ?? []).map((o: { slug: string; updated_at: string | null }) => ({
       url:             `${BASE_URL}/${o.slug}`,
       lastModified:    o.updated_at ? new Date(o.updated_at) : new Date(),
       changeFrequency: "weekly",

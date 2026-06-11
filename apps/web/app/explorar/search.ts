@@ -95,9 +95,12 @@ export async function searchOrganizations(filters: SearchFilters): Promise<{
     if (r.rubro) rubroCounts.set(r.rubro, (rubroCounts.get(r.rubro) ?? 0) + 1);
   }
 
+  type SvcRow   = { id: string; organization_id: string; name: string; description: string | null; price: number | null; duration_minutes: number };
+  type StaffRow = { id: string; organization_id: string; name: string; avatar_url: string | null };
+
   // Group services and staff by org
-  const svcByOrg = new Map<string, typeof allServices extends (infer T)[] | null ? T[] : never>();
-  const staffByOrg = new Map<string, typeof allStaff extends (infer T)[] | null ? T[] : never>();
+  const svcByOrg   = new Map<string, SvcRow[]>();
+  const staffByOrg = new Map<string, StaffRow[]>();
 
   for (const svc of allServices ?? []) {
     const list = svcByOrg.get(svc.organization_id) ?? [];
