@@ -134,8 +134,19 @@ Fase 1 — Producto y arquitectura
 - [x] Admin: /admin/categories (categorías de plataforma), /admin/organizations con filtros
 - [x] Migraciones: staff_services, storage_avatars, org_is_featured, booking_unique_slot, etc.
 
+### Completado en Deploy
+- [x] Supabase producción: proyecto wqyfgbneozaylmrzspks, 22 migraciones aplicadas
+- [x] Vercel deploy: reunio-app-web, conectado a GitHub main (auto-deploy)
+- [x] Dominio: reunio.lat (Namecheap) → apuntado a Vercel, SSL activo
+- [x] Bucket avatars creado en Supabase Storage producción
+- [x] Usuario admin: plataforma con is_platform_admin en app_metadata
+- [x] ~500 ciudades de Argentina (tabla cities) con autocompletado en registro
+- [x] ~120 categorías de servicios cargadas en platform_categories
+- [x] Fix engine: procesa múltiples bloques horarios por día (mañana + tarde)
+- [x] CategorySelect: combobox con búsqueda para selección única en wizard
+
 ### Próximo paso
-Deploy a producción: crear proyecto Supabase prod → configurar env vars en Vercel → supabase db push → dominio
+Beta privada: reclutar 5-10 negocios reales en Argentina
 
 ### Pasos manuales pendientes para deploy
 1. `npx supabase login` → `npx supabase link --project-ref <ref>`
