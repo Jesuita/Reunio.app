@@ -112,8 +112,40 @@ Fase 1 — Producto y arquitectura
   - Usuario demo: demo@reunio.app / demo1234 (vinculado a org El Corte Perfecto)
   - Todas las rutas responden 200; login y dashboard verificados en browser
 
+### Completado en Fase 6 (continuación)
+- [x] Landing page / — hero slider, features, how it works, pricing preview, testimonios, directorio, CTA, footer
+- [x] Páginas legales: /terminos, /privacidad, /contacto (con formulario conectado a Resend)
+- [x] SEO: sitemap.ts (dinámico con páginas de negocios), robots.ts, OG + Twitter meta tags
+- [x] Tests: 27/27 pasando
+  - lib/whatsapp-bot.test.ts: global commands + session start + state transitions
+  - app/api/bookings/route.test.ts: 400/201/409/reuse client/duplicate slot
+  - Tests anteriores: engine (9), MP HMAC (4), WA HMAC (3)
+- [x] CI: .github/workflows/ci.yml — type-check + vitest en push/PR
+- [x] Deploy prep:
+  - .env.example: template completo con todas las variables
+  - next.config.mjs: security headers (HSTS, X-Frame-Options, X-Content-Type)
+  - lib/rate-limit.ts: sliding window IP rate limiter
+  - Rate limiting: bookings (10/min), availability (60/min), contact (5/hr)
+  - vercel.json: crons + security headers en /api/*
+- [x] /explorar: búsqueda full-text multi-tabla, scoring por relevancia, is_featured (plan Pro)
+- [x] Página pública /{slug}: hero, sticky category nav, filtro por staff, fotos de perfil
+- [x] Booking wizard: filtro staff por servicio, fotos en step 2, botón volver en step 1
+- [x] Dashboard staff: upload de foto de perfil (Supabase Storage, bucket avatars)
+- [x] Admin: /admin/categories (categorías de plataforma), /admin/organizations con filtros
+- [x] Migraciones: staff_services, storage_avatars, org_is_featured, booking_unique_slot, etc.
+
 ### Próximo paso
-Landing page pública (/) + tests + deploy prep
+Deploy a producción: crear proyecto Supabase prod → configurar env vars en Vercel → supabase db push → dominio
+
+### Pasos manuales pendientes para deploy
+1. `npx supabase login` → `npx supabase link --project-ref <ref>`
+2. `npx supabase db push` (aplica las 21 migraciones en prod)
+3. Crear bucket `avatars` en Supabase prod Storage (o incluirlo en migración)
+4. Configurar variables de entorno en Vercel (ver .env.example)
+5. Agregar `CRON_SECRET` en Vercel env vars
+6. Conectar dominio reunio.app en Vercel → actualizar DNS
+7. Crear productos en Stripe (Pro + Business) → copiar price IDs a env vars
+8. Configurar webhook de Stripe apuntando a https://reunio.app/api/webhooks/stripe
 
 ### Decisiones tomadas
 (actualizar a medida que se toman decisiones de arquitectura)
