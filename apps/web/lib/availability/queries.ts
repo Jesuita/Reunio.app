@@ -34,17 +34,32 @@ export async function fetchService(organizationId: string, serviceId: string) {
   return { id: data.id, durationMinutes: data.duration_minutes, depositAmount: data.deposit_amount, depositPercent: data.deposit_percent };
 }
 
-export async function fetchStaff(organizationId: string, staffId?: string) {
+export async function fetchStaff(organizationId: string, staffId?: string, serviceId?: string) {
   const sb = getServiceClient();
   let query = sb
     .from("staff")
-    .select("id, name")
+    .select("id, name, avatar_url")
     .eq("organization_id", organizationId)
     .eq("is_active", true);
   if (staffId) query = query.eq("id", staffId);
   const { data, error } = await query;
   if (error) throw new Error(`fetchStaff: ${error.message}`);
-  return data as { id: string; name: string }[];
+
+  const all = data as { id: string; name: string }[];
+
+  // Filter by staff_services: only staff who have this service assigned (or all if none have it assigned)
+  if (serviceId && !staffId) {
+    const { data: ss } = await sb
+      .from("staff_services")
+      .select("staff_id")
+      .eq("service_id", serviceId)
+      .in("staff_id", all.map((s) => s.id));
+    const linked = ss?.map((r) => r.staff_id) ?? [];
+    // If no staff have the service explicitly assigned, all can perform it (backwards compat)
+    if (linked.length > 0) return all.filter((s) => linked.includes(s.id));
+  }
+
+  return all;
 }
 
 export async function fetchSchedules(organizationId: string, staffIds: string[]) {

@@ -141,3 +141,38 @@ export async function saveScheduleDay(
   revalidatePath("/dashboard/staff");
   return { success: true };
 }
+
+// ── Staff ↔ Services association ─────────────────────────────────────────────
+
+/** Replaces the full set of services for a staff member. */
+export async function saveStaffServices(
+  staffId: string,
+  serviceIds: string[],
+): Promise<{ success: true } | { success: false; error: string }> {
+  const auth = await getOrgId();
+  if ("error" in auth) return { success: false, error: auth.error };
+
+  const supabase = createClient();
+
+  // Verify staff belongs to org
+  const { data: staffRow } = await supabase
+    .from("staff")
+    .select("id")
+    .eq("id", staffId)
+    .eq("organization_id", auth.orgId)
+    .single();
+  if (!staffRow) return { success: false, error: "Profesional no encontrado." };
+
+  // Delete all current associations
+  await supabase.from("staff_services").delete().eq("staff_id", staffId);
+
+  // Insert new ones
+  if (serviceIds.length > 0) {
+    const rows = serviceIds.map((service_id) => ({ staff_id: staffId, service_id }));
+    const { error } = await supabase.from("staff_services").insert(rows);
+    if (error) return { success: false, error: error.message };
+  }
+
+  revalidatePath("/dashboard/staff");
+  return { success: true };
+}

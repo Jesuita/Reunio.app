@@ -33,6 +33,7 @@ export interface ClientData {
   email: string;
   notes: string;
   acceptsPolicy: boolean;
+  acceptsPrivacyPolicy: boolean;
 }
 
 interface BookingStore {
@@ -50,6 +51,7 @@ interface BookingStore {
   // Result
   createdBookingId: string | null;
   paymentUrl: string | null;
+  manageUrl: string | null;
 
   // Actions
   setStep: (step: BookingStep) => void;
@@ -58,7 +60,7 @@ interface BookingStore {
   setSelectedDate: (date: string) => void;
   setSelectedSlot: (slot: SlotOption) => void;
   setClient: (client: Partial<ClientData>) => void;
-  setResult: (bookingId: string, paymentUrl: string | null) => void;
+  setResult: (bookingId: string, paymentUrl: string | null, manageUrl: string | null) => void;
   reset: () => void;
 }
 
@@ -68,6 +70,7 @@ const defaultClient: ClientData = {
   email: "",
   notes: "",
   acceptsPolicy: false,
+  acceptsPrivacyPolicy: false,
 };
 
 export const useBookingStore = create<BookingStore>((set) => ({
@@ -81,6 +84,7 @@ export const useBookingStore = create<BookingStore>((set) => ({
   client: defaultClient,
   createdBookingId: null,
   paymentUrl: null,
+  manageUrl: null,
 
   setStep: (step) => set({ step }),
   setService: (service) => set({ service, staff: null, selectedDate: null, selectedSlot: null }),
@@ -89,8 +93,8 @@ export const useBookingStore = create<BookingStore>((set) => ({
   setSelectedSlot: (slot) => set({ selectedSlot: slot }),
   setClient: (partial) =>
     set((s) => ({ client: { ...s.client, ...partial } })),
-  setResult: (bookingId, paymentUrl) =>
-    set({ createdBookingId: bookingId, paymentUrl }),
+  setResult: (bookingId, paymentUrl, manageUrl) =>
+    set({ createdBookingId: bookingId, paymentUrl, manageUrl }),
   reset: () =>
     set({
       step: 1,
@@ -101,5 +105,6 @@ export const useBookingStore = create<BookingStore>((set) => ({
       client: defaultClient,
       createdBookingId: null,
       paymentUrl: null,
+      manageUrl: null,
     }),
 }));

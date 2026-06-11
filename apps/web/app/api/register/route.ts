@@ -76,11 +76,13 @@ export async function POST(req: NextRequest) {
   const { data: org, error: orgError } = await supabase
     .from("organizations")
     .insert({
-      name:     data.businessName,
-      slug:     data.businessSlug,
-      timezone: data.businessTimezone,
-      phone:    data.businessPhone ?? null,
-      plan_id:  freePlan.id,
+      name:      data.businessName,
+      slug:      data.businessSlug,
+      timezone:  data.businessTimezone,
+      phone:     data.businessPhone ?? null,
+      plan_id:   freePlan.id,
+      is_listed: true,
+      is_active: true,
       settings: {
         onboarding_completed: false,
         registered_email: data.email,
@@ -135,21 +137,28 @@ export async function POST(req: NextRequest) {
   // 6. Create default schedules for the staff member
   if (staffId) {
     const schedules = data.availableDays.map((day) => ({
-      staff_id:   staffId,
-      day_of_week: day,
-      start_time:  data.openTime + ":00",
-      end_time:    data.closeTime + ":00",
-      is_active:   true,
+      staff_id:        staffId,
+      day_of_week:     day,
+      start_time:      data.openTime + ":00",
+      end_time:        data.closeTime + ":00",
+      is_active:       true,
     }));
 
-    const { error: schedError } = await supabase
-      .from("schedules")
-      .insert(schedules);
-
-    if (schedError) {
-      console.error("[register] schedule insert error:", schedError);
-    }
+    const { error: schedError } = await supabase.from("schedules").insert(schedules);
+    if (schedError) console.error("[register] schedule insert error:", schedError);
   }
+
+  // 7. Seed business_hours with the same availability chosen in the wizard
+  const businessHours = data.availableDays.map((day) => ({
+    organization_id: orgId,
+    day_of_week:     day,
+    start_time:      data.openTime + ":00",
+    end_time:        data.closeTime + ":00",
+    is_active:       true,
+  }));
+
+  const { error: bhError } = await supabase.from("business_hours").insert(businessHours);
+  if (bhError) console.error("[register] business_hours insert error:", bhError);
 
   // TODO: In a real app, create Supabase Auth user here:
   // const { error: authError } = await supabase.auth.admin.createUser({ email, password })

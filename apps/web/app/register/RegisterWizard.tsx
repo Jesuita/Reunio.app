@@ -9,11 +9,15 @@ import { Check, ChevronRight, Building2, User, Scissors, Clock } from "lucide-re
 import { registerAction } from "@/lib/actions/auth";
 import WeekScheduleEditor, { defaultWeekSchedule, type WeekSchedule } from "@/components/WeekScheduleEditor";
 import { RUBROS } from "@/lib/rubros";
+import { LATAM_CITIES } from "@/lib/latam-cities";
+
+type PlatformCategory = { id: string; name: string; color: string };
 
 type Step = 1 | 2 | 3 | 4;
 
 interface FormData {
   // Step 1 — Account
+  ownerName: string;
   email: string;
   password: string;
   confirmPassword: string;
@@ -22,7 +26,7 @@ interface FormData {
   businessSlug: string;
   businessPhone: string;
   businessTimezone: string;
-  businessRubro: string;
+  businessRubros: string[];
   businessCity: string;
   // Step 3 — First service
   serviceName: string;
@@ -58,13 +62,20 @@ function slugify(str: string) {
     .replace(/^-+|-+$/g, "");
 }
 
-export default function RegisterWizard({ initialPlan }: { initialPlan: string }) {
+export default function RegisterWizard({
+  initialPlan,
+  platformCategories,
+}: {
+  initialPlan: string;
+  platformCategories: PlatformCategory[];
+}) {
   const router  = useRouter();
   const [step,    setStep]    = useState<Step>(1);
   const [loading, setLoading] = useState(false);
   const [errors,  setErrors]  = useState<Partial<Record<keyof FormData | "submit", string>>>({});
 
   const [form, setForm] = useState<FormData>({
+    ownerName:         "",
     email:             "",
     password:          "",
     confirmPassword:   "",
@@ -72,7 +83,7 @@ export default function RegisterWizard({ initialPlan }: { initialPlan: string })
     businessSlug:      "",
     businessPhone:     "",
     businessTimezone:  "America/Argentina/Buenos_Aires",
-    businessRubro:     "",
+    businessRubros:    [],
     businessCity:      "",
     serviceName:       "",
     serviceCategory:   "General",
@@ -95,6 +106,7 @@ export default function RegisterWizard({ initialPlan }: { initialPlan: string })
   function validateStep(s: Step): boolean {
     const errs: typeof errors = {};
     if (s === 1) {
+      if (!form.ownerName.trim() || form.ownerName.trim().length < 2) errs.ownerName = "Ingresá tu nombre.";
       if (!form.email.includes("@"))       errs.email           = "Email inválido.";
       if (form.password.length < 8)        errs.password        = "Mínimo 8 caracteres.";
       if (form.password !== form.confirmPassword) errs.confirmPassword = "Las contraseñas no coinciden.";
@@ -168,6 +180,12 @@ export default function RegisterWizard({ initialPlan }: { initialPlan: string })
             <p className="text-sm text-muted-foreground">Vas a usar este email para ingresar a Reunio.</p>
 
             <div className="space-y-2">
+              <Label>Tu nombre</Label>
+              <Input placeholder="Ej: María García"
+                value={form.ownerName} onChange={(e) => set("ownerName", e.target.value)} />
+              {errors.ownerName && <p className="text-xs text-red-500">{errors.ownerName}</p>}
+            </div>
+            <div className="space-y-2">
               <Label>Email</Label>
               <Input type="email" placeholder="hola@tunegocio.com"
                 value={form.email} onChange={(e) => set("email", e.target.value)} />
@@ -211,18 +229,45 @@ export default function RegisterWizard({ initialPlan }: { initialPlan: string })
             </div>
             <div className="space-y-2">
               <Label>Rubro del negocio</Label>
-              <select className="w-full border border-input rounded-md px-3 py-2 text-sm bg-background"
-                value={form.businessRubro} onChange={(e) => set("businessRubro", e.target.value)}>
-                <option value="">— Seleccioná el rubro —</option>
-                {RUBROS.map((r) => <option key={r} value={r}>{r}</option>)}
-              </select>
-              <p className="text-xs text-muted-foreground">Aparecerá en el directorio público de Reunio.</p>
+              <p className="text-xs text-muted-foreground">Podés elegir más de uno. Aparecerá en el directorio público.</p>
+              <div className="flex flex-wrap gap-2 mt-1">
+                {RUBROS.map((r) => {
+                  const selected = form.businessRubros.includes(r);
+                  return (
+                    <button
+                      key={r}
+                      type="button"
+                      onClick={() => {
+                        const next = selected
+                          ? form.businessRubros.filter((x) => x !== r)
+                          : [...form.businessRubros, r];
+                        set("businessRubros", next);
+                      }}
+                      className={`px-3 py-1.5 rounded-full text-sm border transition-colors ${
+                        selected
+                          ? "bg-primary text-primary-foreground border-primary"
+                          : "bg-background text-foreground border-input hover:bg-muted"
+                      }`}
+                    >
+                      {r}
+                    </button>
+                  );
+                })}
+              </div>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Ciudad</Label>
-                <Input placeholder="Ej: Buenos Aires"
-                  value={form.businessCity} onChange={(e) => set("businessCity", e.target.value)} />
+                <input
+                  list="latam-cities"
+                  placeholder="Ej: Buenos Aires, Argentina"
+                  value={form.businessCity}
+                  onChange={(e) => set("businessCity", e.target.value)}
+                  className="w-full border border-input rounded-md px-3 py-2 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-ring"
+                />
+                <datalist id="latam-cities">
+                  {LATAM_CITIES.map((c) => <option key={c} value={c} />)}
+                </datalist>
               </div>
               <div className="space-y-2">
                 <Label>Teléfono (WhatsApp)</Label>
@@ -252,15 +297,52 @@ export default function RegisterWizard({ initialPlan }: { initialPlan: string })
 
             <div className="space-y-1.5">
               <Label>
-                Categoría
+                Categoría del servicio
                 <span className="ml-1.5 text-xs text-muted-foreground font-normal">
                   — agrupa los servicios en tu página de reservas
                 </span>
               </Label>
-              <Input placeholder="Ej: Cortes, Consultas, Masajes"
-                value={form.serviceCategory} onChange={(e) => set("serviceCategory", e.target.value)} />
+              {platformCategories.length > 0 ? (
+                <div className="flex flex-wrap gap-2">
+                  {platformCategories.map((cat) => {
+                    const selected = form.serviceCategory === cat.name;
+                    return (
+                      <button
+                        key={cat.id}
+                        type="button"
+                        onClick={() => set("serviceCategory", cat.name)}
+                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm border transition-colors ${
+                          selected
+                            ? "bg-primary text-primary-foreground border-primary"
+                            : "bg-background text-foreground border-input hover:bg-muted"
+                        }`}
+                      >
+                        <span
+                          className="w-2 h-2 rounded-full shrink-0"
+                          style={{ backgroundColor: selected ? "currentColor" : cat.color }}
+                        />
+                        {cat.name}
+                      </button>
+                    );
+                  })}
+                  <button
+                    type="button"
+                    onClick={() => set("serviceCategory", "General")}
+                    className={`px-3 py-1.5 rounded-full text-sm border transition-colors ${
+                      form.serviceCategory === "General"
+                        ? "bg-primary text-primary-foreground border-primary"
+                        : "bg-background text-muted-foreground border-input hover:bg-muted"
+                    }`}
+                  >
+                    General
+                  </button>
+                </div>
+              ) : (
+                <Input placeholder="Ej: Cortes, Consultas, Masajes"
+                  value={form.serviceCategory} onChange={(e) => set("serviceCategory", e.target.value)} />
+              )}
               <p className="text-xs text-muted-foreground">
-                Si no sabés qué poner, dejá &quot;General&quot;. Podés crear más categorías desde el panel.
+                Podés crear más categorías desde el panel.
               </p>
             </div>
 

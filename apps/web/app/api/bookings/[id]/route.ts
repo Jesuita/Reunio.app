@@ -38,7 +38,9 @@ export async function GET(
 
 // ── PATCH /api/bookings/[id] ──────────────────────────────────────────────────
 const patchSchema = z.discriminatedUnion("action", [
-  z.object({ action: z.literal("cancel"), manageToken: z.string().optional() }),
+  z.object({ action: z.literal("cancel"),   manageToken: z.string().optional() }),
+  z.object({ action: z.literal("complete") }),
+  z.object({ action: z.literal("no_show") }),
   z.object({ action: z.literal("reschedule"), startsAt: z.string().datetime(), manageToken: z.string().optional() }),
 ]);
 
@@ -66,11 +68,14 @@ export async function PATCH(
   }
 
   // Auth: verify manageToken if provided (self-service flow), otherwise assume admin session
-  if (parsed.data.manageToken) {
-    const tokenPayload = await verifyBookingToken(decodeURIComponent(parsed.data.manageToken));
+  let isSelfService = false;
+  const manageToken = "manageToken" in parsed.data ? parsed.data.manageToken : undefined;
+  if (manageToken) {
+    const tokenPayload = await verifyBookingToken(decodeURIComponent(manageToken));
     if (!tokenPayload || tokenPayload.bookingId !== params.id || tokenPayload.orgId !== existing.organization_id) {
       return NextResponse.json({ error: "Token inválido o expirado." }, { status: 401 });
     }
+    isSelfService = true;
   }
 
   if (existing.status === "cancelled" || existing.status === "completed") {
@@ -81,6 +86,27 @@ export async function PATCH(
   }
 
   if (parsed.data.action === "cancel") {
+    // Self-service cancellations respect the org's cancellation window
+    if (isSelfService) {
+      const { data: orgData } = await sb
+        .from("organizations")
+        .select("settings")
+        .eq("id", existing.organization_id)
+        .single();
+      const settings = (orgData?.settings ?? {}) as { cancellationHours?: number };
+      const cancellationHours = settings.cancellationHours ?? 24;
+      const hoursUntil = (new Date(existing.starts_at).getTime() - Date.now()) / (1000 * 60 * 60);
+      if (hoursUntil < cancellationHours) {
+        return NextResponse.json(
+          {
+            error: `El plazo para cancelar venció. Se requieren al menos ${cancellationHours} hora${cancellationHours !== 1 ? "s" : ""} de anticipación.`,
+            tooLate: true,
+          },
+          { status: 422 },
+        );
+      }
+    }
+
     const { data, error } = await sb
       .from("bookings")
       .update({ status: "cancelled" })
@@ -100,6 +126,26 @@ export async function PATCH(
       date: bookingDate,
     }).catch(console.error);
 
+    return NextResponse.json({ booking: data });
+  }
+
+  if (parsed.data.action === "complete" || parsed.data.action === "no_show") {
+    const newStatus = parsed.data.action === "complete" ? "completed" : "no_show";
+    const { data, error } = await sb
+      .from("bookings")
+      .update({ status: newStatus })
+      .eq("id", params.id)
+      .select()
+      .single();
+    if (error) {
+      return NextResponse.json({ error: "Failed to update booking status" }, { status: 500 });
+    }
+    // Cancel any remaining pending reminders (followup etc.)
+    await sb
+      .from("reminders")
+      .update({ status: "failed", error: `booking_${newStatus}` })
+      .eq("booking_id", params.id)
+      .eq("status", "pending");
     return NextResponse.json({ booking: data });
   }
 

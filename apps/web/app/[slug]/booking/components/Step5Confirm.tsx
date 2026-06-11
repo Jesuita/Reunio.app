@@ -57,14 +57,14 @@ export default function Step5Confirm({ organizationId }: { organizationId: strin
         }),
       });
 
-      const data = await res.json() as { booking?: { id: string }; paymentUrl?: string | null; error?: string };
+      const data = await res.json() as { booking?: { id: string }; paymentUrl?: string | null; manageUrl?: string | null; error?: string };
 
       if (!res.ok) {
         setError(data.error ?? "Ocurrió un error. Intentá de nuevo.");
         return;
       }
 
-      setResult(data.booking!.id, data.paymentUrl ?? null);
+      setResult(data.booking!.id, data.paymentUrl ?? null, data.manageUrl ?? null);
 
       if (data.paymentUrl) {
         window.location.href = data.paymentUrl;

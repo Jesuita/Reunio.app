@@ -6,21 +6,8 @@
       "runtimeExecutable": "npm",
       "runtimeArgs": ["run", "dev"],
       "cwd": "apps/web",
-      "port": 8000
-    },
-    {
-      "name": "Supabase — local stack",
-      "runtimeExecutable": "npx",
-      "runtimeArgs": ["supabase", "start"],
-      "cwd": ".",
-      "port": 54321
-    },
-    {
-      "name": "Supabase Studio",
-      "runtimeExecutable": "npx",
-      "runtimeArgs": ["supabase", "start"],
-      "cwd": ".",
-      "port": 54323
+      "port": 8000,
+      "autoPort": true
     }
   ]
 }

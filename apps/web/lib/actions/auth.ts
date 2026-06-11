@@ -62,6 +62,7 @@ export async function logoutAction(): Promise<void> {
 }
 
 const RegisterSchema = z.object({
+  ownerName:         z.string().min(2, "Ingresá tu nombre."),
   email:             z.string().email(),
   password:          z.string().min(8, "Mínimo 8 caracteres."),
   confirmPassword:   z.string(),
@@ -69,7 +70,7 @@ const RegisterSchema = z.object({
   businessSlug:      z.string().min(2).max(60),
   businessPhone:     z.string().optional(),
   businessTimezone:  z.string(),
-  businessRubro:     z.string().optional(),
+  businessRubros:    z.array(z.string()).default([]),
   businessCity:      z.string().optional(),
   // First service
   serviceName:       z.string().min(2),
@@ -144,7 +145,8 @@ export async function registerAction(data: unknown): Promise<RegisterActionResul
       slug:      d.businessSlug,
       timezone:  d.businessTimezone,
       phone:     d.businessPhone  ?? null,
-      rubro:     d.businessRubro  ?? null,
+      rubro:     d.businessRubros[0] ?? null,
+      rubros:    d.businessRubros,
       city:      d.businessCity   ?? null,
       plan_id:   freePlan.id,
       is_listed: true,
@@ -172,7 +174,7 @@ export async function registerAction(data: unknown): Promise<RegisterActionResul
   // 6. Create default staff (the owner)
   const { data: staff } = await admin
     .from("staff")
-    .insert({ organization_id: orgId, name: d.businessName, email: d.email, color: "#6366f1", is_active: true })
+    .insert({ organization_id: orgId, name: d.ownerName, email: d.email, color: "#6366f1", is_active: true })
     .select("id")
     .single();
 

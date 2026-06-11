@@ -2,11 +2,12 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { requirePlatformAdmin } from "@/lib/platform-admin";
 import { createClient } from "@/lib/supabase/server";
-import { LayoutDashboard, Building2, LogOut, ShieldCheck } from "lucide-react";
+import { LayoutDashboard, Building2, LogOut, ShieldCheck, Tags } from "lucide-react";
 
 const NAV = [
   { href: "/admin",               label: "Dashboard",      icon: LayoutDashboard },
   { href: "/admin/organizations", label: "Negocios",       icon: Building2 },
+  { href: "/admin/categories",    label: "Categorías",     icon: Tags },
 ];
 
 async function AdminSidebar() {
@@ -38,14 +39,22 @@ async function AdminSidebar() {
       {/* User */}
       <div className="border-t p-4 text-xs text-muted-foreground">
         <p className="truncate font-medium text-foreground">{user?.email}</p>
-        <form action="/api/auth/signout" method="post" className="mt-2">
-          <Link
-            href="/dashboard"
+        <form
+          action={async () => {
+            "use server";
+            const { createClient } = await import("@/lib/supabase/server");
+            await createClient().auth.signOut();
+            redirect("/login");
+          }}
+          className="mt-2"
+        >
+          <button
+            type="submit"
             className="flex items-center gap-1.5 hover:text-foreground transition-colors"
           >
             <LogOut className="w-3.5 h-3.5" />
-            Volver al dashboard
-          </Link>
+            Cerrar sesión
+          </button>
         </form>
       </div>
     </aside>

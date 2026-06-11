@@ -6,6 +6,7 @@ import {
   createCategory,
   updateCategory,
   deleteCategory,
+  adoptPlatformCategory,
   type CategoryFormState,
 } from "@/lib/actions/categories";
 import { Button } from "@/components/ui/button";
@@ -15,7 +16,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { Plus, Pencil, Trash2, HelpCircle } from "lucide-react";
+import { Plus, Pencil, Trash2, HelpCircle, Download } from "lucide-react";
 
 type Category = {
   id: string;
@@ -122,10 +123,20 @@ function CategoryForm({ category, onClose }: FormProps) {
   );
 }
 
-export default function CategoriesList({ categories }: { categories: Category[] }) {
+type Suggestion = { id: string; name: string; color: string };
+
+export default function CategoriesList({
+  categories,
+  suggestions = [],
+}: {
+  categories: Category[];
+  suggestions?: Suggestion[];
+}) {
   const [showForm, setShowForm] = useState(false);
   const [editItem, setEditItem] = useState<Category | null>(null);
   const [deleteError, setDeleteError] = useState<string | null>(null);
+  const [adopting, setAdopting] = useState<string | null>(null);
+  const [adoptError, setAdoptError] = useState<string | null>(null);
 
   async function handleDelete(id: string) {
     setDeleteError(null);
@@ -133,9 +144,47 @@ export default function CategoriesList({ categories }: { categories: Category[] 
     if (!result.success) setDeleteError(result.error);
   }
 
+  async function handleAdopt(id: string) {
+    setAdopting(id);
+    setAdoptError(null);
+    const result = await adoptPlatformCategory(id);
+    if (!result.success) setAdoptError(result.error);
+    setAdopting(null);
+  }
+
   return (
     <TooltipProvider>
-      <div className="flex justify-end mb-4">
+      {/* Suggested platform categories */}
+      {suggestions.length > 0 && (
+        <div className="mb-8">
+          <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3">
+            Sugeridas por la plataforma
+          </h2>
+          {adoptError && (
+            <p className="mb-3 text-sm text-destructive bg-destructive/10 rounded-md px-3 py-2">{adoptError}</p>
+          )}
+          <div className="flex flex-wrap gap-2">
+            {suggestions.map((s) => (
+              <button
+                key={s.id}
+                onClick={() => handleAdopt(s.id)}
+                disabled={adopting === s.id}
+                className="flex items-center gap-2 border rounded-full px-3 py-1.5 text-sm bg-background hover:bg-muted transition-colors disabled:opacity-50"
+              >
+                <span className="w-2.5 h-2.5 rounded-full shrink-0" style={{ backgroundColor: s.color }} />
+                {s.name}
+                <Download className="w-3.5 h-3.5 text-muted-foreground" />
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Org categories */}
+      <div className="flex items-center justify-between mb-4">
+        <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">
+          Mis categorías
+        </h2>
         <Button onClick={() => { setEditItem(null); setShowForm(true); }} className="gap-2">
           <Plus className="w-4 h-4" /> Nueva categoría
         </Button>
@@ -151,7 +200,7 @@ export default function CategoriesList({ categories }: { categories: Category[] 
         {categories.length === 0 ? (
           <div className="text-center py-16 text-muted-foreground">
             <p className="text-lg">No hay categorías todavía.</p>
-            <p className="text-sm mt-1">Creá la primera para organizar tus servicios.</p>
+            <p className="text-sm mt-1">Agregá una sugerida o creá la tuya propia.</p>
           </div>
         ) : (
           <table className="w-full text-sm">
@@ -167,10 +216,7 @@ export default function CategoriesList({ categories }: { categories: Category[] 
                 <tr key={cat.id} className="border-b last:border-0 hover:bg-muted/20 transition-colors">
                   <td className="px-5 py-4">
                     <div className="flex items-center gap-2">
-                      <span
-                        className="w-3 h-3 rounded-full shrink-0"
-                        style={{ backgroundColor: cat.color }}
-                      />
+                      <span className="w-3 h-3 rounded-full shrink-0" style={{ backgroundColor: cat.color }} />
                       <span className="font-medium">{cat.name}</span>
                     </div>
                   </td>

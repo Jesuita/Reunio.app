@@ -9,8 +9,9 @@
 
 import { subHours, addHours } from "date-fns";
 import { createClient } from "@/lib/supabase/server";
-import { sendWhatsAppReminder } from "@/lib/whatsapp";
+import { sendWhatsAppReminder, sendText } from "@/lib/whatsapp";
 import { sendEmailReminder } from "@/lib/email";
+import { signBookingToken, buildManageUrl } from "@/lib/booking-token";
 
 export async function scheduleReminders(params: {
   bookingId: string;
@@ -20,12 +21,35 @@ export async function scheduleReminders(params: {
   const supabase = createClient();
   const now = new Date();
 
-  const reminders = [
+  // Fetch org settings to check if pre-confirmation is enabled
+  const { data: booking } = await supabase
+    .from("bookings")
+    .select("organization_id, organizations(settings)")
+    .eq("id", params.bookingId)
+    .single();
+
+  const orgs = booking?.organizations as unknown as { settings: Record<string, unknown> | null } | null;
+  const orgSettings = (orgs?.settings ?? {}) as {
+    requirePreConfirmation?: boolean;
+    preConfirmationHours?: number;
+  };
+
+  const reminders: { type: string; scheduledAt: Date }[] = [
     { type: "confirmation", scheduledAt: now },
     { type: "24h",          scheduledAt: subHours(params.startsAt, 24) },
     { type: "2h",           scheduledAt: subHours(params.startsAt, 2) },
     { type: "followup",     scheduledAt: addHours(params.endsAt, 2) },
-  ].filter((r) => r.scheduledAt > now); // only future reminders
+  ];
+
+  if (orgSettings.requirePreConfirmation) {
+    const preConfHours = orgSettings.preConfirmationHours ?? 24;
+    reminders.push({
+      type: "pre_confirmation",
+      scheduledAt: subHours(params.startsAt, preConfHours),
+    });
+  }
+
+  const futureReminders = reminders.filter((r) => r.scheduledAt > now);
 
   // Cancel old pending reminders for this booking
   await supabase
@@ -34,10 +58,10 @@ export async function scheduleReminders(params: {
     .eq("booking_id", params.bookingId)
     .eq("status", "pending");
 
-  if (reminders.length === 0) return;
+  if (futureReminders.length === 0) return;
 
   await supabase.from("reminders").insert(
-    reminders.map((r) => ({
+    futureReminders.map((r) => ({
       booking_id:   params.bookingId,
       channel:      "whatsapp",
       type:         r.type,
@@ -133,6 +157,31 @@ async function dispatchReminder(reminder: ReminderRow) {
     bookingId:    reminder.booking_id,
     reminderType: reminder.type,
   };
+
+  // Pre-confirmation: custom message with manage link
+  if (reminder.type === "pre_confirmation") {
+    const token = await signBookingToken(reminder.booking_id, booking.organization_id);
+    const baseUrl = process.env["NEXT_PUBLIC_APP_URL"] ?? "http://localhost:8000";
+    const manageUrl = buildManageUrl(baseUrl, token);
+
+    const date = ctx.startsAt.toLocaleDateString("es-AR", {
+      weekday: "long", day: "numeric", month: "long", timeZone: ctx.timezone,
+    });
+    const time = ctx.startsAt.toLocaleTimeString("es-AR", {
+      hour: "2-digit", minute: "2-digit", timeZone: ctx.timezone,
+    });
+
+    const message =
+      `¡Hola ${ctx.clientName}! 👋\n\n` +
+      `Te recordamos tu turno de *${ctx.serviceName}* con *${ctx.staffName}* en *${ctx.orgName}*.\n\n` +
+      `📅 ${date} a las ${time} hs\n\n` +
+      `Si necesitás cancelarlo, podés hacerlo desde acá (respetando el plazo de cancelación):\n` +
+      `${manageUrl}\n\n` +
+      `Si todo está bien, ¡te esperamos! 🙌`;
+
+    await sendText(ctx.clientPhone, message);
+    return;
+  }
 
   // Send via the configured channel
   if (reminder.channel === "whatsapp") {

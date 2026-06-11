@@ -1,6 +1,7 @@
 "use client";
-import { Clock, ChevronRight } from "lucide-react";
+import { Clock, ChevronRight, ChevronLeft } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
 import { useBookingStore, type ServiceOption } from "../store";
 
 function formatDuration(minutes: number) {
@@ -19,7 +20,7 @@ function formatPrice(s: ServiceOption) {
 }
 
 export default function Step1Service({ services }: { services: ServiceOption[] }) {
-  const { setService, setStep } = useBookingStore();
+  const { setService, setStep, slug } = useBookingStore();
 
   function handleSelect(service: ServiceOption) {
     setService(service);
@@ -28,6 +29,9 @@ export default function Step1Service({ services }: { services: ServiceOption[] }
 
   return (
     <div>
+      <Button variant="ghost" size="sm" className="-ml-2 mb-4" onClick={() => window.location.href = `/${slug}`}>
+        <ChevronLeft className="w-4 h-4 mr-1" /> Volver
+      </Button>
       <h2 className="text-xl font-bold mb-1">¿Qué servicio necesitás?</h2>
       <p className="text-sm text-muted-foreground mb-5">Seleccioná un servicio para continuar.</p>
 

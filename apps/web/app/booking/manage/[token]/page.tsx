@@ -36,12 +36,19 @@ export default async function ManageBookingPage({ params }: Props) {
     .eq("id", payload.orgId)
     .single();
 
+  const settings = (org?.settings ?? {}) as {
+    cancellationHours?: number;
+    cancellationPolicyText?: string;
+  };
+
   return (
     <ManageBookingClient
       booking={booking as unknown as BookingDetail}
       orgName={org?.name ?? ""}
       orgSlug={org?.slug ?? ""}
       token={params.token}
+      cancellationHours={settings.cancellationHours ?? 24}
+      cancellationPolicyText={settings.cancellationPolicyText ?? ""}
     />
   );
 }

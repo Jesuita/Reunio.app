@@ -1,44 +1,84 @@
 "use client";
-import { useState, useEffect, useTransition } from "react";
+import { useState, useEffect, useRef } from "react";
 import { format, addDays, startOfToday, getDay } from "date-fns";
 import { es } from "date-fns/locale";
-import { ChevronLeft, ChevronRight, Loader2 } from "lucide-react";
+import { ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useBookingStore, type SlotOption } from "../store";
 
 const DAY_NAMES = ["Dom", "Lun", "Mar", "Mié", "Jue", "Vie", "Sáb"];
 
-function formatHour(isoStr: string) {
-  const d = new Date(isoStr);
-  return d.toLocaleTimeString("es-AR", { hour: "2-digit", minute: "2-digit", hour12: false, timeZone: "UTC" });
+// Tailwind bg classes for the staff color dot — must be complete strings for Tailwind to include them
+const STAFF_COLORS = [
+  "border-l-blue-500",
+  "border-l-emerald-500",
+  "border-l-violet-500",
+  "border-l-amber-500",
+  "border-l-rose-500",
+  "border-l-cyan-500",
+];
+
+function buildStaffColorMap(slots: SlotOption[]): Map<string, string> {
+  const map = new Map<string, string>();
+  slots.forEach((s) => {
+    if (!map.has(s.staffId)) {
+      map.set(s.staffId, STAFF_COLORS[map.size % STAFF_COLORS.length]);
+    }
+  });
+  return map;
 }
 
-export default function Step3DateTime({ organizationId }: { organizationId: string }) {
+function formatHour(isoStr: string, timezone: string) {
+  return new Date(isoStr).toLocaleTimeString("es-AR", {
+    hour: "2-digit", minute: "2-digit", hour12: false, timeZone: timezone,
+  });
+}
+
+export default function Step3DateTime({ organizationId, timezone }: { organizationId: string; timezone: string }) {
   const { service, staff, selectedDate, setSelectedDate, setSelectedSlot, setStep } = useBookingStore();
 
   const today = startOfToday();
   const [weekStart, setWeekStart] = useState(today);
   const [slots, setSlots] = useState<SlotOption[]>([]);
-  const [loading, startTransition] = useTransition();
+  const [loading, setLoading] = useState(false);
+  const fetchIdRef = useRef(0);
 
   const week = Array.from({ length: 7 }, (_, i) => addDays(weekStart, i));
 
-  // Fetch slots when date changes
+  // Fetch slots when date changes.
+  // Use a generation counter to discard results from stale fetches — even if a previous
+  // request completed just before cleanup ran, its .then() will see a stale fetchId and bail.
   useEffect(() => {
     if (!selectedDate || !service) return;
-    startTransition(async () => {
-      const params = new URLSearchParams({
-        organizationId,
-        serviceId: service.id,
-        date: selectedDate,
-      });
-      if (staff) params.set("staffId", staff.id);
-      const res = await fetch(`/api/availability?${params}`);
-      if (!res.ok) { setSlots([]); return; }
-      const data = await res.json() as { slots: { staffId: string; staffName: string; startsAt: string; endsAt: string; available: boolean }[] };
-      setSlots(data.slots.filter((s) => s.available));
+
+    fetchIdRef.current += 1;
+    const myFetchId = fetchIdRef.current;
+
+    setSlots([]);
+    setLoading(true);
+
+    const params = new URLSearchParams({
+      organizationId,
+      serviceId: service.id,
+      date: selectedDate,
     });
+    if (staff) params.set("staffId", staff.id);
+
+    fetch(`/api/availability?${params}`)
+      .then((res) => res.ok ? res.json() : { slots: [] })
+      .then((data: { slots: { staffId: string; staffName: string; startsAt: string; endsAt: string; available: boolean }[] }) => {
+        if (fetchIdRef.current !== myFetchId) return;
+        setSlots(data.slots.filter((s) => s.available));
+      })
+      .catch(() => {
+        if (fetchIdRef.current !== myFetchId) return;
+        setSlots([]);
+      })
+      .finally(() => {
+        if (fetchIdRef.current !== myFetchId) return;
+        setLoading(false);
+      });
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [selectedDate]);
 
@@ -109,16 +149,25 @@ export default function Step3DateTime({ organizationId }: { organizationId: stri
         <p className="text-center text-sm text-muted-foreground py-8">No hay horarios disponibles para este día.</p>
       ) : (
         <div className="grid grid-cols-3 gap-2">
-          {slots.map((slot) => (
-            <Button
-              key={slot.startsAt}
-              variant="outline"
-              className="h-10"
-              onClick={() => handleSlotSelect(slot)}
-            >
-              {formatHour(slot.startsAt)}
-            </Button>
-          ))}
+          {(() => {
+            const colorMap = buildStaffColorMap(slots);
+            const multiStaff = colorMap.size > 1;
+            return slots.map((slot) => (
+              <Button
+                key={`${slot.staffId}-${slot.startsAt}`}
+                variant="outline"
+                className={`h-auto py-1.5 flex flex-col items-center gap-0 border-l-2 ${multiStaff ? colorMap.get(slot.staffId) : ""}`}
+                onClick={() => handleSlotSelect(slot)}
+              >
+                <span className="text-sm font-medium">{formatHour(slot.startsAt, timezone)}</span>
+                {multiStaff && (
+                  <span className="text-[10px] text-muted-foreground leading-tight">
+                    {slot.staffName.split(" ")[0]}
+                  </span>
+                )}
+              </Button>
+            ));
+          })()}
         </div>
       )}
     </div>

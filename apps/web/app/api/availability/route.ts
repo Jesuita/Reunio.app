@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
+import { rateLimit, getClientIp } from "@/lib/rate-limit";
 import { computeAvailableSlots } from "@/lib/availability/engine";
 import {
   fetchOrganization,
@@ -18,6 +19,11 @@ const querySchema = z.object({
 });
 
 export async function GET(req: NextRequest) {
+  const rl = rateLimit(getClientIp(req), { limit: 60, windowSec: 60 });
+  if (!rl.success) {
+    return NextResponse.json({ error: "Too many requests" }, { status: 429 });
+  }
+
   const { searchParams } = req.nextUrl;
   const parsed = querySchema.safeParse({
     organizationId: searchParams.get("organizationId"),
@@ -36,7 +42,7 @@ export async function GET(req: NextRequest) {
     const [organization, service, staffList] = await Promise.all([
       fetchOrganization(organizationId),
       fetchService(organizationId, serviceId),
-      fetchStaff(organizationId, staffId),
+      fetchStaff(organizationId, staffId, serviceId),
     ]);
 
     const staffIds = staffList.map((s) => s.id);

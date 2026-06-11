@@ -1,0 +1,78 @@
+/** Major LATAM cities for autocomplete. Format: "Ciudad, País" */
+export const LATAM_CITIES: string[] = [
+  // Argentina
+  "Buenos Aires, Argentina",
+  "Córdoba, Argentina",
+  "Rosario, Argentina",
+  "Mendoza, Argentina",
+  "Tucumán, Argentina",
+  "La Plata, Argentina",
+  "Mar del Plata, Argentina",
+  "Salta, Argentina",
+  "Santa Fe, Argentina",
+  "San Juan, Argentina",
+  "Neuquén, Argentina",
+  "Corrientes, Argentina",
+  "Posadas, Argentina",
+  "Bahía Blanca, Argentina",
+  // México
+  "Ciudad de México, México",
+  "Guadalajara, México",
+  "Monterrey, México",
+  "Puebla, México",
+  "Tijuana, México",
+  "León, México",
+  "Mérida, México",
+  "Querétaro, México",
+  "San Luis Potosí, México",
+  "Juárez, México",
+  // Colombia
+  "Bogotá, Colombia",
+  "Medellín, Colombia",
+  "Cali, Colombia",
+  "Barranquilla, Colombia",
+  "Cartagena, Colombia",
+  "Bucaramanga, Colombia",
+  "Pereira, Colombia",
+  // Chile
+  "Santiago, Chile",
+  "Valparaíso, Chile",
+  "Concepción, Chile",
+  "Antofagasta, Chile",
+  "Viña del Mar, Chile",
+  "Temuco, Chile",
+  // Perú
+  "Lima, Perú",
+  "Arequipa, Perú",
+  "Trujillo, Perú",
+  "Chiclayo, Perú",
+  "Cusco, Perú",
+  // Brasil
+  "São Paulo, Brasil",
+  "Rio de Janeiro, Brasil",
+  "Brasília, Brasil",
+  "Salvador, Brasil",
+  "Belo Horizonte, Brasil",
+  "Curitiba, Brasil",
+  "Porto Alegre, Brasil",
+  "Fortaleza, Brasil",
+  "Manaus, Brasil",
+  // Uruguay
+  "Montevideo, Uruguay",
+  "Salto, Uruguay",
+  // Paraguay
+  "Asunción, Paraguay",
+  "Ciudad del Este, Paraguay",
+  // Bolivia
+  "La Paz, Bolivia",
+  "Santa Cruz de la Sierra, Bolivia",
+  "Cochabamba, Bolivia",
+  // Ecuador
+  "Quito, Ecuador",
+  "Guayaquil, Ecuador",
+  "Cuenca, Ecuador",
+  // Venezuela
+  "Caracas, Venezuela",
+  "Maracaibo, Venezuela",
+  "Valencia, Venezuela",
+];

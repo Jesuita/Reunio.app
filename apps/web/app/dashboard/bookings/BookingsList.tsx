@@ -1,8 +1,11 @@
 "use client";
 
-import { useState, useTransition } from "react";
+import { useState, useTransition, useMemo } from "react";
 import { useRouter, useSearchParams, usePathname } from "next/navigation";
-import { X, ChevronRight, Calendar, Clock, User, Scissors, CreditCard, Globe, MessageCircle } from "lucide-react";
+import {
+  X, ChevronRight, Calendar, Clock, User, Scissors,
+  CreditCard, Globe, MessageCircle, CheckCircle2, XCircle, Bell,
+} from "lucide-react";
 import { Button } from "@/components/ui/button";
 import type { BookingRow } from "./page";
 
@@ -38,6 +41,10 @@ function formatTime(iso: string) {
   });
 }
 
+function isPastBooking(b: BookingRow) {
+  return new Date(b.ends_at) < new Date();
+}
+
 // ── Booking Detail Panel ──────────────────────────────────────────────────────
 function BookingPanel({
   booking,
@@ -48,31 +55,36 @@ function BookingPanel({
   onClose: () => void;
   onStatusChange: (id: string, status: string) => void;
 }) {
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState<string | null>(null);
   const [error, setError] = useState<string | null>(null);
 
-  async function changeStatus(action: "cancel" | "complete" | "no_show") {
-    setLoading(true);
+  async function callAction(action: "cancel" | "complete" | "no_show") {
+    setLoading(action);
     setError(null);
     try {
-      const statusMap = { cancel: "cancelled", complete: "completed", no_show: "no_show" };
       const res = await fetch(`/api/bookings/${booking.id}`, {
         method: "PATCH",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ action: action === "cancel" ? "cancel" : "cancel" }),
+        body: JSON.stringify({ action }),
       });
-      if (!res.ok) throw new Error("Error al actualizar");
+      if (!res.ok) {
+        const data = await res.json();
+        throw new Error(data.error ?? "Error al actualizar");
+      }
+      const statusMap = { cancel: "cancelled", complete: "completed", no_show: "no_show" };
       onStatusChange(booking.id, statusMap[action]);
     } catch (e) {
       setError(e instanceof Error ? e.message : "Error inesperado");
     } finally {
-      setLoading(false);
+      setLoading(null);
     }
   }
 
   const status = STATUS_CONFIG[booking.status] ?? STATUS_CONFIG.confirmed;
   const payment = PAYMENT_CONFIG[booking.payment_status] ?? PAYMENT_CONFIG.unpaid;
-  const isCancellable = booking.status === "confirmed" || booking.status === "pending";
+  const past = isPastBooking(booking);
+  const isCancellable = (booking.status === "confirmed" || booking.status === "pending") && !past;
+  const needsAttendance = booking.status === "confirmed" && past;
 
   return (
     <div className="fixed inset-y-0 right-0 w-full max-w-md bg-background border-l shadow-xl z-40 flex flex-col">
@@ -95,6 +107,38 @@ function BookingPanel({
             </span>
           )}
         </div>
+
+        {/* Attendance prompt for past confirmed bookings */}
+        {needsAttendance && (
+          <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 space-y-3">
+            <p className="text-sm font-semibold text-amber-900">¿El cliente se presentó?</p>
+            <p className="text-xs text-amber-700">
+              Este turno ya pasó. Marcá si el cliente asistió para mantener el historial al día.
+            </p>
+            {error && <p className="text-xs text-destructive">{error}</p>}
+            <div className="flex gap-2">
+              <Button
+                size="sm"
+                className="flex-1 bg-green-600 hover:bg-green-700 text-white gap-1.5"
+                onClick={() => callAction("complete")}
+                disabled={loading !== null}
+              >
+                <CheckCircle2 className="w-3.5 h-3.5" />
+                {loading === "complete" ? "Guardando…" : "Sí, vino"}
+              </Button>
+              <Button
+                size="sm"
+                variant="outline"
+                className="flex-1 border-red-200 text-red-600 hover:bg-red-50 gap-1.5"
+                onClick={() => callAction("no_show")}
+                disabled={loading !== null}
+              >
+                <XCircle className="w-3.5 h-3.5" />
+                {loading === "no_show" ? "Guardando…" : "No vino"}
+              </Button>
+            </div>
+          </div>
+        )}
 
         {/* Main info */}
         <div className="space-y-3">
@@ -148,7 +192,7 @@ function BookingPanel({
         </div>
       </div>
 
-      {/* Actions */}
+      {/* Actions footer */}
       {isCancellable && (
         <div className="p-5 border-t space-y-2">
           {error && <p className="text-sm text-destructive">{error}</p>}
@@ -156,13 +200,55 @@ function BookingPanel({
             variant="outline"
             size="sm"
             className="w-full border-destructive/40 text-destructive hover:bg-destructive/5"
-            onClick={() => changeStatus("cancel")}
-            disabled={loading}
+            onClick={() => callAction("cancel")}
+            disabled={loading !== null}
           >
-            {loading ? "Cancelando..." : "Cancelar turno"}
+            {loading === "cancel" ? "Cancelando..." : "Cancelar turno"}
           </Button>
         </div>
       )}
+    </div>
+  );
+}
+
+// ── Attendance Banner ─────────────────────────────────────────────────────────
+function AttendanceBanner({
+  count,
+  onFilter,
+  onDismiss,
+}: {
+  count: number;
+  onFilter: () => void;
+  onDismiss: () => void;
+}) {
+  return (
+    <div className="flex items-start gap-3 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 mb-4">
+      <Bell className="w-4 h-4 text-amber-600 mt-0.5 shrink-0" />
+      <div className="flex-1 min-w-0">
+        <p className="text-sm font-medium text-amber-900">
+          {count === 1
+            ? "Hay 1 turno que necesita que confirmes si el cliente asistió."
+            : `Hay ${count} turnos que necesitan que confirmes si los clientes asistieron.`}
+        </p>
+        <p className="text-xs text-amber-700 mt-0.5">
+          Mantener el historial al día te ayuda a ver métricas reales de no-shows.
+        </p>
+      </div>
+      <div className="flex items-center gap-2 shrink-0">
+        <button
+          onClick={onFilter}
+          className="text-xs font-semibold text-amber-800 underline underline-offset-2 hover:text-amber-900 transition-colors"
+        >
+          Ver ahora
+        </button>
+        <button
+          onClick={onDismiss}
+          className="p-1 rounded hover:bg-amber-100 transition-colors"
+          aria-label="Cerrar"
+        >
+          <X className="w-3.5 h-3.5 text-amber-600" />
+        </button>
+      </div>
     </div>
   );
 }
@@ -177,7 +263,7 @@ type Filters = {
   source?: string;
 };
 
-function Filters({
+function FiltersBar({
   staffMembers,
   services,
   current,
@@ -284,12 +370,29 @@ export default function BookingsList({
   services: { id: string; name: string }[];
   currentFilters: Filters;
 }) {
+  const router = useRouter();
+  const pathname = usePathname();
+  const [, startTransition] = useTransition();
   const [bookings, setBookings] = useState(initialBookings);
   const [selected, setSelected] = useState<BookingRow | null>(null);
+  const [bannerDismissed, setBannerDismissed] = useState(false);
+
+  // Bookings that have passed but are still "confirmed" — need attendance marking
+  const pendingAttendance = useMemo(
+    () => bookings.filter((b) => b.status === "confirmed" && isPastBooking(b)),
+    [bookings],
+  );
 
   function handleStatusChange(id: string, newStatus: string) {
     setBookings((prev) => prev.map((b) => b.id === id ? { ...b, status: newStatus } : b));
     setSelected((prev) => prev?.id === id ? { ...prev, status: newStatus } : prev);
+  }
+
+  function filterToPendingAttendance() {
+    // Filter list to show only confirmed past bookings
+    const params = new URLSearchParams({ status: "confirmed" });
+    startTransition(() => router.push(`${pathname}?${params.toString()}`));
+    setBannerDismissed(true);
   }
 
   // CSV export
@@ -315,8 +418,17 @@ export default function BookingsList({
 
   return (
     <>
+      {/* Attendance banner */}
+      {!bannerDismissed && pendingAttendance.length > 0 && (
+        <AttendanceBanner
+          count={pendingAttendance.length}
+          onFilter={filterToPendingAttendance}
+          onDismiss={() => setBannerDismissed(true)}
+        />
+      )}
+
       <div className="flex items-center justify-between flex-wrap gap-2 mb-4">
-        <Filters staffMembers={staffMembers} services={services} current={currentFilters} />
+        <FiltersBar staffMembers={staffMembers} services={services} current={currentFilters} />
         <Button variant="outline" size="sm" onClick={exportCsv}>
           Exportar CSV
         </Button>
@@ -338,6 +450,7 @@ export default function BookingsList({
           <tbody>
             {bookings.map((b) => {
               const status = STATUS_CONFIG[b.status] ?? STATUS_CONFIG.confirmed;
+              const needsBadge = b.status === "confirmed" && isPastBooking(b);
               return (
                 <tr
                   key={b.id}
@@ -363,6 +476,9 @@ export default function BookingsList({
                     <span className={`text-xs px-2 py-0.5 rounded-full font-medium ${status.color}`}>
                       {status.label}
                     </span>
+                    {needsBadge && (
+                      <span className="ml-1.5 text-xs text-amber-600 font-medium">· pendiente</span>
+                    )}
                   </td>
                   <td className="px-4 py-3 hidden lg:table-cell">
                     <span className={`text-xs px-2 py-0.5 rounded-full ${PAYMENT_CONFIG[b.payment_status]?.color ?? ""}`}>
@@ -385,13 +501,9 @@ export default function BookingsList({
         )}
       </div>
 
-      {/* Overlay for panel */}
       {selected && (
         <>
-          <div
-            className="fixed inset-0 bg-black/20 z-30"
-            onClick={() => setSelected(null)}
-          />
+          <div className="fixed inset-0 bg-black/20 z-30" onClick={() => setSelected(null)} />
           <BookingPanel
             booking={selected}
             onClose={() => setSelected(null)}

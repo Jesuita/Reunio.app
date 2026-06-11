@@ -1,8 +1,8 @@
 import Link from "next/link";
 import { createAdminClient } from "@/lib/supabase/server";
-import { Search, ExternalLink } from "lucide-react";
+import { ExternalLink } from "lucide-react";
 import OrgActions from "./OrgActions";
-import { RUBROS } from "@/lib/rubros";
+import AdminOrgFilters from "./AdminOrgFilters";
 
 export const metadata = { title: "Negocios — Admin Reunio" };
 
@@ -101,64 +101,8 @@ export default async function AdminOrganizationsPage({ searchParams }: PageProps
         </div>
       </div>
 
-      {/* ── Filters ── */}
-      <div className="flex flex-wrap gap-3 mb-6">
-        {/* Search */}
-        <form method="get" className="relative">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-muted-foreground" />
-          <input
-            name="q"
-            defaultValue={q}
-            placeholder="Buscar por nombre..."
-            className="pl-9 pr-3 py-2 border rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-ring bg-background w-56"
-          />
-          {rubro   && <input type="hidden" name="rubro"  value={rubro} />}
-          {active  && <input type="hidden" name="active" value={active} />}
-          {listed  && <input type="hidden" name="listed" value={listed} />}
-        </form>
-
-        {/* Rubro filter */}
-        <a href={filterUrl({ rubro: "", page: undefined })}
-          className={`px-3 py-2 border rounded-lg text-sm transition-colors ${!rubro ? "bg-primary text-primary-foreground border-primary" : "bg-background hover:bg-muted"}`}>
-          Todos los rubros
-        </a>
-        <select
-          className="border rounded-lg px-3 py-2 text-sm bg-background"
-          defaultValue={rubro}
-          onChange={(e) => { window.location.href = filterUrl({ rubro: (e.target as HTMLSelectElement).value, page: undefined }); }}
-        >
-          <option value="">Rubro...</option>
-          {RUBROS.map((r) => <option key={r} value={r}>{r}</option>)}
-        </select>
-
-        {/* Active filter */}
-        <div className="flex items-center gap-1 border rounded-lg overflow-hidden">
-          {[
-            { label: "Todos",      value: undefined },
-            { label: "Activos",    value: "true"  },
-            { label: "Suspendidos",value: "false" },
-          ].map(({ label, value }) => (
-            <a key={label} href={filterUrl({ active: value, page: undefined })}
-              className={`px-3 py-2 text-sm transition-colors ${active === value ? "bg-primary text-primary-foreground" : "bg-background hover:bg-muted"}`}>
-              {label}
-            </a>
-          ))}
-        </div>
-
-        {/* Listed filter */}
-        <div className="flex items-center gap-1 border rounded-lg overflow-hidden">
-          {[
-            { label: "Directorio: todos", value: undefined },
-            { label: "Visibles",          value: "true"  },
-            { label: "Ocultos",           value: "false" },
-          ].map(({ label, value }) => (
-            <a key={label} href={filterUrl({ listed: value, page: undefined })}
-              className={`px-3 py-2 text-sm transition-colors ${listed === value ? "bg-primary text-primary-foreground" : "bg-background hover:bg-muted"}`}>
-              {label}
-            </a>
-          ))}
-        </div>
-      </div>
+      {/* ── Filters (Client Component — uses useRouter for onChange) ── */}
+      <AdminOrgFilters q={q} rubro={rubro} active={active} listed={listed} />
 
       {/* ── Table ── */}
       <div className="bg-background border rounded-xl overflow-hidden">

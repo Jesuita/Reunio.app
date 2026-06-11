@@ -10,19 +10,20 @@ import Step5Confirm from "./components/Step5Confirm";
 import Step6Success from "./components/Step6Success";
 
 interface Props {
-  org: { id: string; name: string; slug: string; logoUrl: string | null };
+  org: { id: string; name: string; slug: string; logoUrl: string | null; timezone: string };
+  cancellationPolicy: { hours: number; text: string };
   services: {
     id: string; name: string; description: string | null;
     duration_minutes: number; price: number | null;
     deposit_amount: number | null; deposit_percent: number | null;
     color: string | null; category: string | null;
   }[];
-  staffList: { id: string; name: string; avatar_url: string | null }[];
   preselectedServiceId: string | null;
+  preselectedStaffId: string | null;
 }
 
-export default function BookingWizard({ org, services, staffList, preselectedServiceId }: Props) {
-  const { step, setStep, setService, organizationId } = useBookingStore();
+export default function BookingWizard({ org, cancellationPolicy, services, preselectedServiceId, preselectedStaffId }: Props) {
+  const { step, setStep, setService, setStaff, organizationId } = useBookingStore();
 
   // Initialize store with org data
   useEffect(() => {
@@ -41,8 +42,17 @@ export default function BookingWizard({ org, services, staffList, preselectedSer
           depositPercent: svc.deposit_percent,
           color: svc.color,
         });
-        setStep(2);
+        if (preselectedStaffId) {
+          setStaff({ id: preselectedStaffId, name: "", avatarUrl: null });
+          setStep(3);
+        } else {
+          setStep(2);
+        }
+        return;
       }
+    }
+    if (preselectedStaffId) {
+      setStaff({ id: preselectedStaffId, name: "", avatarUrl: null });
     }
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -56,12 +66,6 @@ export default function BookingWizard({ org, services, staffList, preselectedSer
     depositAmount: s.deposit_amount,
     depositPercent: s.deposit_percent,
     color: s.color,
-  }));
-
-  const mappedStaff = staffList.map((s) => ({
-    id: s.id,
-    name: s.name,
-    avatarUrl: s.avatar_url,
   }));
 
   return (
@@ -83,9 +87,9 @@ export default function BookingWizard({ org, services, staffList, preselectedSer
 
       <div className="max-w-lg mx-auto px-4 py-6">
         {step === 1 && <Step1Service services={mappedServices} />}
-        {step === 2 && <Step2Staff staffList={mappedStaff} />}
-        {step === 3 && <Step3DateTime organizationId={org.id} />}
-        {step === 4 && <Step4ClientData />}
+        {step === 2 && <Step2Staff />}
+        {step === 3 && <Step3DateTime organizationId={org.id} timezone={org.timezone} />}
+        {step === 4 && <Step4ClientData policy={cancellationPolicy} orgName={org.name} />}
         {step === 5 && <Step5Confirm organizationId={org.id} />}
         {step === 6 && <Step6Success slug={org.slug} />}
       </div>

@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
 import { createClient } from "@supabase/supabase-js";
+import { rateLimit, getClientIp } from "@/lib/rate-limit";
 import { computeAvailableSlots } from "@/lib/availability/engine";
 import { signBookingToken, buildManageUrl } from "@/lib/booking-token";
 import { createDepositPreference } from "@/lib/mercadopago";
@@ -36,6 +37,14 @@ function getServiceClient() {
 }
 
 export async function POST(req: NextRequest) {
+  const rl = rateLimit(getClientIp(req), { limit: 10, windowSec: 60 });
+  if (!rl.success) {
+    return NextResponse.json(
+      { error: "Demasiadas solicitudes. Esperá un momento e intentá de nuevo." },
+      { status: 429, headers: { "Retry-After": String(Math.ceil((rl.resetAt - Date.now()) / 1000)) } },
+    );
+  }
+
   const json = await req.json().catch(() => null);
   const parsed = bodySchema.safeParse(json);
   if (!parsed.success) {
@@ -135,7 +144,15 @@ export async function POST(req: NextRequest) {
       .select()
       .single();
 
-    if (bookingError) throw new Error(`create booking: ${bookingError.message}`);
+    if (bookingError) {
+      if (bookingError.code === "23505") {
+        return NextResponse.json(
+          { error: "Ese turno acaba de ser tomado por otro cliente. Por favor elegí otro horario." },
+          { status: 409 },
+        );
+      }
+      throw new Error(`create booking: ${bookingError.message}`);
+    }
 
     // ── 5. Schedule reminders (only for confirmed bookings; pending wait for payment) ──
     if (bookingStatus === "confirmed") {

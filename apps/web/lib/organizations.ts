@@ -12,7 +12,7 @@ export async function getOrganizationBySlug(slug: string) {
   const { data, error } = await sb
     .from("organizations")
     .select(`
-      id, name, slug, category, timezone, phone, address, logo_url, settings,
+      id, name, slug, category, timezone, phone, address, logo_url, settings, rubro, city, description,
       plans(name, features)
     `)
     .eq("slug", slug)

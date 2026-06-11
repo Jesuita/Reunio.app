@@ -1,6 +1,6 @@
 "use client";
 import Link from "next/link";
-import { CheckCircle2, MessageCircle, Calendar } from "lucide-react";
+import { CheckCircle2, MessageCircle, Calendar, XCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useBookingStore } from "../store";
 
@@ -19,7 +19,7 @@ function buildGoogleCalendarUrl(startsAt: string, endsAt: string, title: string,
 }
 
 export default function Step6Success({ slug }: { slug: string }) {
-  const { service, selectedSlot, reset } = useBookingStore();
+  const { service, selectedSlot, manageUrl, reset } = useBookingStore();
 
   const calendarUrl =
     service && selectedSlot
@@ -53,6 +53,15 @@ export default function Step6Success({ slug }: { slug: string }) {
             <Button variant="outline" className="w-full gap-2">
               <Calendar className="w-4 h-4" />
               Agregar a Google Calendar
+            </Button>
+          </a>
+        )}
+
+        {manageUrl && (
+          <a href={manageUrl} className="block">
+            <Button variant="outline" className="w-full gap-2 text-muted-foreground">
+              <XCircle className="w-4 h-4" />
+              Ver o cancelar mi turno
             </Button>
           </a>
         )}

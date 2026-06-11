@@ -112,3 +112,38 @@ export async function deleteCategory(id: string): Promise<CategoryFormState> {
   revalidatePath("/dashboard/services");
   return { success: true };
 }
+
+/** Copia una categoría de plataforma al service_categories del negocio. */
+export async function adoptPlatformCategory(platformCategoryId: string): Promise<CategoryFormState> {
+  const auth = await getOrgId();
+  if ("error" in auth) return { success: false, error: auth.error };
+
+  const supabase = createClient();
+
+  // Fetch platform category
+  const { data: pc, error: fetchErr } = await supabase
+    .from("platform_categories")
+    .select("name, color")
+    .eq("id", platformCategoryId)
+    .single();
+
+  if (fetchErr || !pc) return { success: false, error: "Categoría de plataforma no encontrada." };
+
+  // Check not already adopted (same name)
+  const { count } = await supabase
+    .from("service_categories")
+    .select("id", { count: "exact", head: true })
+    .eq("organization_id", auth.orgId)
+    .eq("name", pc.name);
+
+  if ((count ?? 0) > 0) return { success: false, error: "Ya tenés una categoría con ese nombre." };
+
+  const { error } = await supabase
+    .from("service_categories")
+    .insert({ organization_id: auth.orgId, name: pc.name, color: pc.color });
+
+  if (error) return { success: false, error: error.message };
+
+  revalidatePath("/dashboard/categories");
+  return { success: true };
+}
