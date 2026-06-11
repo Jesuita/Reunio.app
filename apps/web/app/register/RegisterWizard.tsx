@@ -10,6 +10,7 @@ import { registerAction } from "@/lib/actions/auth";
 import WeekScheduleEditor, { defaultWeekSchedule, type WeekSchedule } from "@/components/WeekScheduleEditor";
 import { RUBROS } from "@/lib/rubros";
 import CityAutocomplete from "@/components/CityAutocomplete";
+import CategoryMultiSelect from "@/components/CategoryMultiSelect";
 
 type PlatformCategory = { id: string; name: string; color: string };
 
@@ -297,45 +298,11 @@ export default function RegisterWizard({
                   — agrupa los servicios en tu página de reservas
                 </span>
               </Label>
-              {platformCategories.length > 0 ? (
-                <div className="flex flex-wrap gap-2">
-                  {platformCategories.map((cat) => {
-                    const selected = form.serviceCategory === cat.name;
-                    return (
-                      <button
-                        key={cat.id}
-                        type="button"
-                        onClick={() => set("serviceCategory", cat.name)}
-                        className={`flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm border transition-colors ${
-                          selected
-                            ? "bg-primary text-primary-foreground border-primary"
-                            : "bg-background text-foreground border-input hover:bg-muted"
-                        }`}
-                      >
-                        <span
-                          className="w-2 h-2 rounded-full shrink-0"
-                          style={{ backgroundColor: selected ? "currentColor" : cat.color }}
-                        />
-                        {cat.name}
-                      </button>
-                    );
-                  })}
-                  <button
-                    type="button"
-                    onClick={() => set("serviceCategory", "General")}
-                    className={`px-3 py-1.5 rounded-full text-sm border transition-colors ${
-                      form.serviceCategory === "General"
-                        ? "bg-primary text-primary-foreground border-primary"
-                        : "bg-background text-muted-foreground border-input hover:bg-muted"
-                    }`}
-                  >
-                    General
-                  </button>
-                </div>
-              ) : (
-                <Input placeholder="Ej: Cortes, Consultas, Masajes"
-                  value={form.serviceCategory} onChange={(e) => set("serviceCategory", e.target.value)} />
-              )}
+              <CategoryMultiSelect
+                options={platformCategories}
+                value={form.serviceCategory}
+                onChange={(v) => set("serviceCategory", v)}
+              />
               <p className="text-xs text-muted-foreground">
                 Podés crear más categorías desde el panel.
               </p>
