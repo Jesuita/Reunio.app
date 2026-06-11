@@ -59,10 +59,10 @@ export default function PlansList({ initialPlans }: { initialPlans: DbPlan[] }) 
                   </div>
                   <p className="text-sm text-muted-foreground">
                     <span className="font-semibold text-foreground">
-                      ${plan.price_ars.toLocaleString("es-AR")} ARS
+                      {plan.price_ars != null ? `$${plan.price_ars.toLocaleString("es-AR")} ARS` : "Gratis"}
                     </span>
                     {" / "}
-                    <span className="font-semibold text-foreground">${plan.price_usd} USD</span>
+                    <span className="font-semibold text-foreground">{plan.price_usd != null ? `$${plan.price_usd} USD` : "Gratis"}</span>
                     {" · "}por mes
                   </p>
                 </div>
