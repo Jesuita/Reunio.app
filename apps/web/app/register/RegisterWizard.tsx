@@ -9,7 +9,7 @@ import { Check, ChevronRight, Building2, User, Scissors, Clock } from "lucide-re
 import { registerAction } from "@/lib/actions/auth";
 import WeekScheduleEditor, { defaultWeekSchedule, type WeekSchedule } from "@/components/WeekScheduleEditor";
 import { RUBROS } from "@/lib/rubros";
-import { LATAM_CITIES } from "@/lib/latam-cities";
+import CityAutocomplete from "@/components/CityAutocomplete";
 
 type PlatformCategory = { id: string; name: string; color: string };
 
@@ -258,16 +258,11 @@ export default function RegisterWizard({
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
                 <Label>Ciudad</Label>
-                <input
-                  list="latam-cities"
-                  placeholder="Ej: Buenos Aires, Argentina"
+                <CityAutocomplete
                   value={form.businessCity}
-                  onChange={(e) => set("businessCity", e.target.value)}
-                  className="w-full border border-input rounded-md px-3 py-2 text-sm bg-background focus:outline-none focus:ring-2 focus:ring-ring"
+                  onChange={(v) => set("businessCity", v)}
+                  placeholder="Ej: Buenos Aires"
                 />
-                <datalist id="latam-cities">
-                  {LATAM_CITIES.map((c) => <option key={c} value={c} />)}
-                </datalist>
               </div>
               <div className="space-y-2">
                 <Label>Teléfono (WhatsApp)</Label>
