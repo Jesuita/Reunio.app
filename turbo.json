@@ -3,7 +3,30 @@
   "tasks": {
     "build": {
       "dependsOn": ["^build"],
-      "outputs": [".next/**", "!.next/cache/**", "dist/**"]
+      "outputs": [".next/**", "!.next/cache/**", "dist/**"],
+      "env": [
+        "NEXT_PUBLIC_SUPABASE_URL",
+        "NEXT_PUBLIC_SUPABASE_ANON_KEY",
+        "SUPABASE_SERVICE_ROLE_KEY",
+        "NEXT_PUBLIC_APP_URL",
+        "NEXT_PUBLIC_STRIPE_PUBLISHABLE_KEY",
+        "NEXT_PUBLIC_POSTHOG_KEY",
+        "NEXT_PUBLIC_POSTHOG_HOST",
+        "NEXT_PUBLIC_SENTRY_DSN",
+        "JWT_SECRET",
+        "CRON_SECRET",
+        "STRIPE_SECRET_KEY",
+        "STRIPE_WEBHOOK_SECRET",
+        "RESEND_API_KEY",
+        "MERCADOPAGO_ACCESS_TOKEN",
+        "MERCADOPAGO_PUBLIC_KEY",
+        "MERCADOPAGO_WEBHOOK_SECRET",
+        "WHATSAPP_API_TOKEN",
+        "WHATSAPP_API_URL",
+        "SENTRY_DSN",
+        "INNGEST_EVENT_KEY",
+        "INNGEST_SIGNING_KEY"
+      ]
     },
     "dev": {
       "cache": false,
