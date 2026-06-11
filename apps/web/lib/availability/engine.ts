@@ -105,57 +105,54 @@ export function computeAvailableSlots({
         continue;
       }
 
-      // Determine working window
-      let workStartStr: string | null = null;
-      let workEndStr:   string | null = null;
+      // Determine working blocks (a day can have multiple blocks, e.g. morning + afternoon)
+      type Block = { startStr: string; endStr: string };
+      const blocks: Block[] = [];
 
       if (override?.startTime && override.endTime) {
-        workStartStr = override.startTime;
-        workEndStr   = override.endTime;
+        blocks.push({ startStr: override.startTime, endStr: override.endTime });
       } else {
-        const schedule = schedules.find(
-          (s) => s.staffId === staffMember.id && s.dayOfWeek === dayOfWeek
-        );
-        if (schedule) {
-          workStartStr = schedule.startTime;
-          workEndStr   = schedule.endTime;
-        }
+        schedules
+          .filter((s) => s.staffId === staffMember.id && s.dayOfWeek === dayOfWeek)
+          .forEach((s) => blocks.push({ startStr: s.startTime, endStr: s.endTime }));
       }
 
-      if (!workStartStr || !workEndStr) {
+      if (blocks.length === 0) {
         currentDateStr = nextDateStr(currentDateStr);
         continue;
       }
 
-      const workStart = wallClockToUtc(currentDateStr, workStartStr, timezone);
-      const workEnd   = wallClockToUtc(currentDateStr, workEndStr,   timezone);
+      // Generate slots for each block
+      for (const block of blocks) {
+        const workStart = wallClockToUtc(currentDateStr, block.startStr, timezone);
+        const workEnd   = wallClockToUtc(currentDateStr, block.endStr,   timezone);
 
-      // Generate slots within the working window
-      let slotStart = workStart;
-      while (!isAfter(addMinutes(slotStart, durationMinutes), workEnd)) {
-        const slotEnd = addMinutes(slotStart, durationMinutes);
+        let slotStart = workStart;
+        while (!isAfter(addMinutes(slotStart, durationMinutes), workEnd)) {
+          const slotEnd = addMinutes(slotStart, durationMinutes);
 
-        if (!isBefore(slotStart, earliest)) {
-          const isOccupied = existingBookings.some(
-            (b) =>
-              b.staffId === staffMember.id &&
-              areIntervalsOverlapping(
-                { start: slotStart, end: slotEnd },
-                { start: b.startsAt, end: b.endsAt },
-                { inclusive: false }
-              )
-          );
+          if (!isBefore(slotStart, earliest)) {
+            const isOccupied = existingBookings.some(
+              (b) =>
+                b.staffId === staffMember.id &&
+                areIntervalsOverlapping(
+                  { start: slotStart, end: slotEnd },
+                  { start: b.startsAt, end: b.endsAt },
+                  { inclusive: false }
+                )
+            );
 
-          slots.push({
-            staffId:   staffMember.id,
-            staffName: staffMember.name,
-            startsAt:  slotStart,
-            endsAt:    slotEnd,
-            available: !isOccupied,
-          });
+            slots.push({
+              staffId:   staffMember.id,
+              staffName: staffMember.name,
+              startsAt:  slotStart,
+              endsAt:    slotEnd,
+              available: !isOccupied,
+            });
+          }
+
+          slotStart = addMinutes(slotStart, durationMinutes);
         }
-
-        slotStart = addMinutes(slotStart, durationMinutes);
       }
 
       currentDateStr = nextDateStr(currentDateStr);
