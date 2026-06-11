@@ -41,7 +41,7 @@ export default function PlanForm({ plan, onClose }: { plan: DbPlan | null; onClo
     setError("");
     const result = await savePlanAction(plan?.id ?? null, new FormData(e.currentTarget));
     setLoading(false);
-    if (result && "error" in result) { setError(result.error); return; }
+    if (result && "error" in result) { setError(result.error ?? "Error desconocido"); return; }
     onClose();
   }
 
