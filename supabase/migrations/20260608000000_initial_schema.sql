@@ -22,7 +22,7 @@ CREATE EXTENSION IF NOT EXISTS "uuid-ossp";
 -- 1. plans
 -- ============================================================
 CREATE TABLE plans (
-  id                  uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id                  uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   name                text NOT NULL,                        -- 'free' | 'pro' | 'business'
   max_staff           integer,                              -- null = unlimited
   max_bookings_month  integer,                              -- null = unlimited
@@ -44,7 +44,7 @@ VALUES
 -- 2. organizations
 -- ============================================================
 CREATE TABLE organizations (
-  id          uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id          uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   name        text NOT NULL,
   slug        text UNIQUE NOT NULL,                         -- e.g. "peluqueria-maria"
   category    text,                                         -- 'beauty' | 'health' | 'fitness' | ...
@@ -64,7 +64,7 @@ CREATE INDEX idx_organizations_plan_id ON organizations(plan_id);
 -- 3. branches
 -- ============================================================
 CREATE TABLE branches (
-  id              uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id              uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   organization_id uuid NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
   name            text NOT NULL,
   address         text,
@@ -79,7 +79,7 @@ CREATE INDEX idx_branches_organization_id ON branches(organization_id);
 -- 4. staff
 -- ============================================================
 CREATE TABLE staff (
-  id              uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id              uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   organization_id uuid NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
   branch_id       uuid REFERENCES branches(id) ON DELETE SET NULL,
   user_id         uuid REFERENCES auth.users(id) ON DELETE SET NULL,  -- null = no login
@@ -101,7 +101,7 @@ CREATE INDEX idx_staff_user_id ON staff(user_id);
 -- 5. services
 -- ============================================================
 CREATE TABLE services (
-  id               uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id               uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   organization_id  uuid NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
   name             text NOT NULL,
   description      text,
@@ -125,7 +125,7 @@ CREATE INDEX idx_services_organization_id ON services(organization_id);
 -- 6. schedules
 -- ============================================================
 CREATE TABLE schedules (
-  id              uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id              uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   organization_id uuid NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
   staff_id        uuid NOT NULL REFERENCES staff(id) ON DELETE CASCADE,
   day_of_week     integer NOT NULL,                         -- 0=Sunday, 6=Saturday
@@ -143,7 +143,7 @@ CREATE INDEX idx_schedules_organization_id ON schedules(organization_id);
 -- 7. schedule_overrides
 -- ============================================================
 CREATE TABLE schedule_overrides (
-  id          uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id          uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   staff_id    uuid NOT NULL REFERENCES staff(id) ON DELETE CASCADE,
   date        date NOT NULL,
   is_day_off  boolean NOT NULL DEFAULT false,
@@ -163,7 +163,7 @@ CREATE INDEX idx_schedule_overrides_date ON schedule_overrides(date);
 -- 8. clients
 -- ============================================================
 CREATE TABLE clients (
-  id              uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id              uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   organization_id uuid NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
   name            text NOT NULL,
   email           text,
@@ -182,7 +182,7 @@ CREATE INDEX idx_clients_email ON clients(organization_id, email);
 -- 9. bookings
 -- ============================================================
 CREATE TABLE bookings (
-  id              uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id              uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   organization_id uuid NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
   branch_id       uuid REFERENCES branches(id) ON DELETE SET NULL,
   staff_id        uuid NOT NULL REFERENCES staff(id) ON DELETE RESTRICT,
@@ -217,7 +217,7 @@ CREATE INDEX idx_bookings_status ON bookings(organization_id, status);
 -- 10. payments
 -- ============================================================
 CREATE TABLE payments (
-  id              uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id              uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   booking_id      uuid NOT NULL REFERENCES bookings(id) ON DELETE CASCADE,
   organization_id uuid NOT NULL REFERENCES organizations(id) ON DELETE CASCADE,
   provider        text NOT NULL,                            -- 'mercadopago' | 'stripe'
@@ -245,7 +245,7 @@ CREATE INDEX idx_payments_status ON payments(organization_id, status);
 -- 11. reminders
 -- ============================================================
 CREATE TABLE reminders (
-  id          uuid PRIMARY KEY DEFAULT uuid_generate_v4(),
+  id          uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   booking_id  uuid NOT NULL REFERENCES bookings(id) ON DELETE CASCADE,
   channel     text NOT NULL,                                -- 'whatsapp' | 'email' | 'sms'
   type        text NOT NULL,                                -- 'confirmation' | '24h' | '2h' | 'followup'
