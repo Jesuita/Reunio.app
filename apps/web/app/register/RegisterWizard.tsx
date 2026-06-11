@@ -10,7 +10,7 @@ import { registerAction } from "@/lib/actions/auth";
 import WeekScheduleEditor, { defaultWeekSchedule, type WeekSchedule } from "@/components/WeekScheduleEditor";
 import { RUBROS } from "@/lib/rubros";
 import CityAutocomplete from "@/components/CityAutocomplete";
-import CategoryMultiSelect from "@/components/CategoryMultiSelect";
+import CategorySelect from "@/components/CategorySelect";
 
 type PlatformCategory = { id: string; name: string; color: string };
 
@@ -298,7 +298,7 @@ export default function RegisterWizard({
                   — agrupa los servicios en tu página de reservas
                 </span>
               </Label>
-              <CategoryMultiSelect
+              <CategorySelect
                 options={platformCategories}
                 value={form.serviceCategory}
                 onChange={(v) => set("serviceCategory", v)}
