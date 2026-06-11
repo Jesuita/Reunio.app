@@ -2,12 +2,13 @@ import Link from "next/link";
 import { redirect } from "next/navigation";
 import { requirePlatformAdmin } from "@/lib/platform-admin";
 import { createClient } from "@/lib/supabase/server";
-import { LayoutDashboard, Building2, LogOut, ShieldCheck, Tags } from "lucide-react";
+import { LayoutDashboard, Building2, LogOut, ShieldCheck, Tags, CreditCard } from "lucide-react";
 
 const NAV = [
   { href: "/admin",               label: "Dashboard",      icon: LayoutDashboard },
   { href: "/admin/organizations", label: "Negocios",       icon: Building2 },
   { href: "/admin/categories",    label: "Categorías",     icon: Tags },
+  { href: "/admin/plans",         label: "Planes",         icon: CreditCard },
 ];
 
 async function AdminSidebar() {

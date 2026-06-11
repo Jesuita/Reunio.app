@@ -4,12 +4,13 @@
 -- ============================================================
 
 -- Plan
-INSERT INTO plans (id, name, max_staff, max_bookings_month, features, price_ars, price_usd)
+INSERT INTO plans (id, name, label, max_staff, max_bookings_month, features, price_ars, price_usd,
+  whatsapp_reminders, online_payments, reports, sort_order, is_active)
 VALUES (
   '00000000-0000-0000-0000-000000000001',
-  'pro', 5, null,
+  'pro', 'Pro', 5, null,
   '{"whatsapp": true, "payments": true, "reports": true}',
-  null, 19
+  null, 19, true, true, 'full', 2, true
 ) ON CONFLICT (id) DO NOTHING;
 
 -- Organization
