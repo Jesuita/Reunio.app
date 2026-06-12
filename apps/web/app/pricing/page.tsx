@@ -139,7 +139,7 @@ export default function PricingPage() {
                       </>
                     )}
                   </div>
-                  {plan.priceUsd > 0 && (
+                  {false && (
                     <p className="text-sm text-muted-foreground mt-1">
                       ≈ ${plan.priceArs.toLocaleString("es-AR")} ARS
                     </p>

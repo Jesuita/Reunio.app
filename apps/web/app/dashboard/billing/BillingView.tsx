@@ -231,11 +231,6 @@ export default function BillingView({
                     </>
                   )}
                 </div>
-                {p.priceUsd > 0 && (
-                  <p className="text-xs text-muted-foreground mt-0.5">
-                    ≈ ${p.priceArs.toLocaleString("es-AR")} ARS
-                  </p>
-                )}
               </div>
 
               <ul className="space-y-2 flex-1 mb-5">

@@ -652,9 +652,7 @@ function PricingPreview() {
                         <span className="text-5xl font-black text-white">{plan.priceUsd}</span>
                         <span className="text-white/40 text-sm mb-1.5">/mes</span>
                       </div>
-                      <p className="text-white/30 text-xs mt-1">
-                        ≈ ${plan.priceArs.toLocaleString("es-AR")} ARS
-                      </p>
+                      <p className="text-white/30 text-xs mt-1">por mes, en USD</p>
                     </div>
                   )}
                 </div>
