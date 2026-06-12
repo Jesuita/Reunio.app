@@ -19,13 +19,13 @@ const PLAN_FEATURES: Record<PlanName, string[]> = {
   starter: [
     "Hasta 2 profesionales",
     "Hasta 3 servicios",
-    "200 turnos/mes",
+    "Turnos ilimitados",
     "Reportes básicos",
   ],
   pro: [
-    "Hasta 10 profesionales",
+    "Hasta 5 profesionales",
     "Servicios ilimitados",
-    "500 turnos/mes",
+    "Turnos ilimitados",
     "Recordatorios WhatsApp",
     "Cobro de señas (Mercado Pago)",
     "Reportes completos + exportar CSV",

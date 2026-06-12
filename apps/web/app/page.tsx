@@ -542,7 +542,7 @@ const PRICING_PLANS = [
     features: [
       { text: "Hasta 2 profesionales",          included: true  },
       { text: "Hasta 3 servicios",              included: true  },
-      { text: "200 turnos por mes",             included: true  },
+      { text: "Turnos ilimitados",               included: true  },
       { text: "Página de reservas pública",     included: true  },
       { text: "Reportes básicos",               included: true  },
       { text: "Recordatorios por WhatsApp",     included: false },
@@ -560,9 +560,9 @@ const PRICING_PLANS = [
     href:    "/register?plan=pro",
     popular: true,
     features: [
-      { text: "Hasta 10 profesionales",         included: true  },
+      { text: "Hasta 5 profesionales",           included: true  },
       { text: "Servicios ilimitados",           included: true  },
-      { text: "500 turnos por mes",             included: true  },
+      { text: "Turnos ilimitados",               included: true  },
       { text: "Recordatorios por WhatsApp",     included: true  },
       { text: "Cobro de señas (Mercado Pago)",  included: true  },
       { text: "Reportes completos + CSV",       included: true  },

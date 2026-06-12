@@ -48,12 +48,12 @@ export const PLANS: Record<PlanName, Plan> = {
   starter: {
     name:          "starter",
     label:         "Starter",
-    priceArs:      6000,
-    priceUsd:      6,
+    priceArs:      9990,
+    priceUsd:      9.99,
     stripePriceId: process.env["STRIPE_PRICE_STARTER"] ?? null,
     limits: {
       maxStaff:            2,
-      maxBookingsPerMonth: 200,
+      maxBookingsPerMonth: null,
       maxServices:         3,
       whatsappReminders:   false,
       onlinePayments:      false,
@@ -66,13 +66,13 @@ export const PLANS: Record<PlanName, Plan> = {
   pro: {
     name:          "pro",
     label:         "Pro",
-    priceArs:      19000,
-    priceUsd:      19,
+    priceArs:      19990,
+    priceUsd:      19.99,
     stripePriceId: process.env["STRIPE_PRICE_PRO"] ?? null,
     highlight:     "Más popular",
     limits: {
-      maxStaff:            10,
-      maxBookingsPerMonth: 500,
+      maxStaff:            5,
+      maxBookingsPerMonth: null,
       maxServices:         null,
       whatsappReminders:   true,
       onlinePayments:      true,
@@ -85,8 +85,8 @@ export const PLANS: Record<PlanName, Plan> = {
   business: {
     name:          "business",
     label:         "Business",
-    priceArs:      49000,
-    priceUsd:      49,
+    priceArs:      49990,
+    priceUsd:      49.99,
     stripePriceId: process.env["STRIPE_PRICE_BUSINESS"] ?? null,
     limits: {
       maxStaff:            null,
