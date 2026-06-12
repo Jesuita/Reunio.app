@@ -1,27 +1,9 @@
 import Link from "next/link";
-import {
-  Calendar, Scissors, Users, LayoutDashboard, BookOpen,
-  UserSquare2, BarChart2, Settings, CreditCard, Code2, Tag,
-} from "lucide-react";
 import { requireAuth } from "@/lib/auth";
 import { createClient } from "@/lib/supabase/server";
 import { type PlanName } from "@/lib/plans";
 import LogoutButton from "./LogoutButton";
-import SidebarNav, { type NavItem } from "./SidebarNav";
-
-const navItems: NavItem[] = [
-  { href: "/dashboard",            label: "Resumen",     icon: LayoutDashboard },
-  { href: "/dashboard/calendar",   label: "Agenda",      icon: Calendar },
-  { href: "/dashboard/bookings",   label: "Turnos",      icon: BookOpen },
-  { href: "/dashboard/clients",    label: "Clientes",    icon: UserSquare2 },
-  { href: "/dashboard/services",   label: "Servicios",   icon: Scissors },
-  { href: "/dashboard/categories", label: "Categorías",  icon: Tag },
-  { href: "/dashboard/staff",      label: "Personal",    icon: Users },
-  { href: "/dashboard/reports",    label: "Reportes",    icon: BarChart2,  requiredPlan: "starter" },
-  { href: "/dashboard/settings",   label: "Config",      icon: Settings },
-  { href: "/dashboard/billing",    label: "Facturación", icon: CreditCard },
-  { href: "/dashboard/widget",     label: "Widget",      icon: Code2,      requiredPlan: "pro" },
-];
+import SidebarNav from "./SidebarNav";
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const user = await requireAuth();
@@ -44,7 +26,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
           <span className="ml-2 text-xs text-muted-foreground font-medium">Admin</span>
         </div>
 
-        <SidebarNav items={navItems} currentPlan={currentPlan} />
+        <SidebarNav currentPlan={currentPlan} />
 
         <div className="p-4 border-t space-y-2">
           <p className="text-xs text-muted-foreground truncate px-1">{user.email}</p>

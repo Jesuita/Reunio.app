@@ -2,32 +2,38 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Lock } from "lucide-react";
-import type { LucideIcon } from "lucide-react";
+import {
+  Calendar, Scissors, Users, LayoutDashboard, BookOpen,
+  UserSquare2, BarChart2, Settings, CreditCard, Code2, Tag, Lock,
+} from "lucide-react";
 import type { PlanName } from "@/lib/plans";
 
 const PLAN_ORDER: PlanName[] = ["free", "starter", "pro", "business"];
-
-export type NavItem = {
-  href: string;
-  label: string;
-  icon: LucideIcon;
-  requiredPlan?: PlanName;
+const PLAN_LABELS: Record<PlanName, string> = {
+  free: "Free", starter: "Starter", pro: "Pro", business: "Business",
 };
 
-export default function SidebarNav({
-  items,
-  currentPlan,
-}: {
-  items: NavItem[];
-  currentPlan: PlanName;
-}) {
+const NAV_ITEMS = [
+  { href: "/dashboard",            label: "Resumen",     icon: LayoutDashboard },
+  { href: "/dashboard/calendar",   label: "Agenda",      icon: Calendar },
+  { href: "/dashboard/bookings",   label: "Turnos",      icon: BookOpen },
+  { href: "/dashboard/clients",    label: "Clientes",    icon: UserSquare2 },
+  { href: "/dashboard/services",   label: "Servicios",   icon: Scissors },
+  { href: "/dashboard/categories", label: "Categorías",  icon: Tag },
+  { href: "/dashboard/staff",      label: "Personal",    icon: Users },
+  { href: "/dashboard/reports",    label: "Reportes",    icon: BarChart2,  requiredPlan: "starter" as PlanName },
+  { href: "/dashboard/settings",   label: "Config",      icon: Settings },
+  { href: "/dashboard/billing",    label: "Facturación", icon: CreditCard },
+  { href: "/dashboard/widget",     label: "Widget",      icon: Code2,      requiredPlan: "pro" as PlanName },
+];
+
+export default function SidebarNav({ currentPlan }: { currentPlan: PlanName }) {
   const pathname = usePathname();
   const currentIdx = PLAN_ORDER.indexOf(currentPlan);
 
   return (
     <nav className="flex-1 py-4 px-3 space-y-1">
-      {items.map(({ href, label, icon: Icon, requiredPlan }) => {
+      {NAV_ITEMS.map(({ href, label, icon: Icon, requiredPlan }) => {
         const isActive =
           href === "/dashboard"
             ? pathname === "/dashboard"
@@ -35,10 +41,6 @@ export default function SidebarNav({
 
         const requiredIdx = requiredPlan ? PLAN_ORDER.indexOf(requiredPlan) : -1;
         const isLocked = requiredIdx > currentIdx;
-
-        const PLAN_LABELS: Record<PlanName, string> = {
-          free: "Free", starter: "Starter", pro: "Pro", business: "Business",
-        };
 
         return (
           <Link
