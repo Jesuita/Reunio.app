@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { createClient } from "@/lib/supabase/server";
 import RegisterWizard from "./RegisterWizard";
+import GoogleAuthButton from "@/components/GoogleAuthButton";
 
 export const metadata: Metadata = {
   title: "Crear cuenta — Reunio",
@@ -10,14 +11,18 @@ export const metadata: Metadata = {
 export default async function RegisterPage({
   searchParams,
 }: {
-  searchParams: { plan?: string };
+  searchParams: { plan?: string; google?: string };
 }) {
   const supabase = createClient();
-  const { data: platformCategories } = await supabase
-    .from("platform_categories")
-    .select("id, name, color")
-    .order("sort_order")
-    .order("name");
+  const [{ data: platformCategories }, { data: { user } }] = await Promise.all([
+    supabase.from("platform_categories").select("id, name, color").order("sort_order").order("name"),
+    supabase.auth.getUser(),
+  ]);
+
+  const googleMode = searchParams.google === "1";
+  const googleDisplayName = googleMode
+    ? ((user?.user_metadata as Record<string, string> | null)?.["full_name"] ?? "")
+    : "";
 
   return (
     <div className="min-h-screen bg-muted/30 flex flex-col items-center justify-center px-4 py-12">
@@ -27,11 +32,30 @@ export default async function RegisterPage({
       </a>
       <div className="mb-8 text-center">
         <a href="/" className="font-bold text-2xl">Reunio</a>
-        <p className="text-sm text-muted-foreground mt-1">Creá tu cuenta en 4 pasos simples</p>
+        <p className="text-sm text-muted-foreground mt-1">
+          {googleMode ? "Completá los datos de tu negocio" : "Creá tu cuenta en 4 pasos simples"}
+        </p>
       </div>
+
+      {!googleMode && (
+        <div className="w-full max-w-md mb-4 space-y-3">
+          <GoogleAuthButton label="Registrarse con Google" />
+          <div className="relative">
+            <div className="absolute inset-0 flex items-center">
+              <span className="w-full border-t" />
+            </div>
+            <div className="relative flex justify-center text-xs uppercase">
+              <span className="bg-muted/30 px-2 text-muted-foreground">o registrate con email</span>
+            </div>
+          </div>
+        </div>
+      )}
+
       <RegisterWizard
         initialPlan={searchParams.plan ?? "free"}
         platformCategories={platformCategories ?? []}
+        googleMode={googleMode}
+        googleDisplayName={googleDisplayName}
       />
     </div>
   );

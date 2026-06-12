@@ -27,11 +27,14 @@ export async function checkPlanLimit(
 
   const { data: org } = await supabase
     .from("organizations")
-    .select("plan_id, plans(name)")
+    .select("plan_id, trial_ends_at, plans(name)")
     .eq("id", organizationId)
     .single();
 
-  const planName = ((org?.plans as { name?: string } | null)?.name ?? "free") as PlanName;
+  const basePlan = ((org?.plans as { name?: string } | null)?.name ?? "free") as PlanName;
+  const trialEndsAt = (org as { trial_ends_at?: string | null } | null)?.trial_ends_at;
+  const trialActive = !!trialEndsAt && new Date(trialEndsAt) > new Date();
+  const planName: PlanName = trialActive && basePlan === "free" ? "pro" : basePlan;
   const plan = PLANS[planName] ?? PLANS.free;
   const limits = plan.limits;
 

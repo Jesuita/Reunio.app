@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { loginAction, type AuthActionResult } from "@/lib/actions/auth";
 import { AlertCircle } from "lucide-react";
+import GoogleAuthButton from "@/components/GoogleAuthButton";
 
 function SubmitButton() {
   const { pending } = useFormStatus();
@@ -74,6 +75,17 @@ export default function LoginForm({ next }: { next?: string }) {
 
           <SubmitButton />
         </form>
+
+        <div className="relative my-5">
+          <div className="absolute inset-0 flex items-center">
+            <span className="w-full border-t" />
+          </div>
+          <div className="relative flex justify-center text-xs uppercase">
+            <span className="bg-background px-2 text-muted-foreground">o</span>
+          </div>
+        </div>
+
+        <GoogleAuthButton label="Continuar con Google" />
       </div>
 
       <p className="text-center text-xs text-muted-foreground mt-6">

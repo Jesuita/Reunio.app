@@ -4,6 +4,7 @@ import { createClient } from "@/lib/supabase/server";
 import { type PlanName } from "@/lib/plans";
 import LogoutButton from "./LogoutButton";
 import SidebarNav from "./SidebarNav";
+import TrialBanner from "./TrialBanner";
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const user = await requireAuth();
@@ -11,11 +12,15 @@ export default async function DashboardLayout({ children }: { children: React.Re
   const supabase = createClient();
   const { data: org } = await supabase
     .from("organizations")
-    .select("plans(name)")
+    .select("plans(name), trial_ends_at")
     .eq("id", user.organizationId)
     .single();
 
   const currentPlan = ((org?.plans as { name?: string } | null)?.name ?? "free") as PlanName;
+  const trialEndsAt = (org as { trial_ends_at?: string | null } | null)?.trial_ends_at;
+  const daysLeft = trialEndsAt
+    ? Math.ceil((new Date(trialEndsAt).getTime() - Date.now()) / 86_400_000)
+    : 0;
 
   return (
     <div className="flex min-h-screen bg-muted/30">
@@ -45,6 +50,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
       {/* Main */}
       <main className="flex-1 overflow-auto">
+        <TrialBanner daysLeft={daysLeft} />
         {children}
       </main>
     </div>

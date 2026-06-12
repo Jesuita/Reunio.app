@@ -86,7 +86,7 @@ const RegisterSchema = z.object({
       end_time:   z.string().regex(/^\d{2}:\d{2}$/),
     })).max(2),
   ),
-  plan:              z.enum(["free", "pro", "business"]).default("free"),
+  plan:              z.enum(["free", "starter", "pro", "business"]).default("free"),
 });
 
 export type RegisterActionResult = { error: string; field?: string } | { success: true; orgSlug: string };
@@ -137,20 +137,22 @@ export async function registerAction(data: unknown): Promise<RegisterActionResul
   const { data: freePlan } = await admin.from("plans").select("id").eq("name", "free").single();
   if (!freePlan) return { error: "Error interno: plan no encontrado." };
 
-  // 4. Create organization
+  // 4. Create organization (with 14-day Pro trial)
+  const trialEndsAt = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString();
   const { data: org, error: orgError } = await admin
     .from("organizations")
     .insert({
-      name:      d.businessName,
-      slug:      d.businessSlug,
-      timezone:  d.businessTimezone,
-      phone:     d.businessPhone  ?? null,
-      rubro:     d.businessRubros[0] ?? null,
-      rubros:    d.businessRubros,
-      city:      d.businessCity   ?? null,
-      plan_id:   freePlan.id,
-      is_listed: true,
-      settings:  { onboarding_completed: false, owner_user_id: userId },
+      name:          d.businessName,
+      slug:          d.businessSlug,
+      timezone:      d.businessTimezone,
+      phone:         d.businessPhone  ?? null,
+      rubro:         d.businessRubros[0] ?? null,
+      rubros:        d.businessRubros,
+      city:          d.businessCity   ?? null,
+      plan_id:       freePlan.id,
+      trial_ends_at: trialEndsAt,
+      is_listed:     true,
+      settings:      { onboarding_completed: false, owner_user_id: userId },
     })
     .select("id")
     .single();
@@ -243,6 +245,148 @@ export async function registerAction(data: unknown): Promise<RegisterActionResul
   // 9. Sign in the new user immediately
   const supabase = createClient();
   await supabase.auth.signInWithPassword({ email: d.email, password: d.password });
+
+  return { success: true, orgSlug: d.businessSlug };
+}
+
+const GoogleRegisterSchema = z.object({
+  ownerName:         z.string().min(2, "Ingresá tu nombre.").optional(),
+  businessName:      z.string().min(2),
+  businessSlug:      z.string().min(2).max(60),
+  businessPhone:     z.string().optional(),
+  businessTimezone:  z.string(),
+  businessRubros:    z.array(z.string()).default([]),
+  businessCity:      z.string().optional(),
+  serviceName:       z.string().min(2),
+  serviceCategory:   z.string().min(1).max(50).default("General"),
+  serviceDuration:   z.coerce.number().int().min(5),
+  servicePrice:      z.coerce.number().min(0).optional(),
+  weekSchedule:      z.record(
+    z.string().regex(/^[0-6]$/),
+    z.array(z.object({
+      start_time: z.string().regex(/^\d{2}:\d{2}$/),
+      end_time:   z.string().regex(/^\d{2}:\d{2}$/),
+    })).max(2),
+  ),
+  plan: z.enum(["free", "starter", "pro", "business"]).default("free"),
+});
+
+export async function completeGoogleRegistration(data: unknown): Promise<RegisterActionResult> {
+  const supabase = createClient();
+  const { data: { user }, error: userError } = await supabase.auth.getUser();
+  if (userError || !user) {
+    return { error: "No autenticado. Volvé a iniciar sesión con Google." };
+  }
+
+  const parsed = GoogleRegisterSchema.safeParse(data);
+  if (!parsed.success) {
+    const firstError = parsed.error.errors[0];
+    return { error: firstError?.message ?? "Datos inválidos.", field: String(firstError?.path?.[0] ?? "") };
+  }
+
+  const d = parsed.data;
+  const admin = createAdminClient();
+
+  const { data: existing } = await admin
+    .from("organizations")
+    .select("id")
+    .eq("slug", d.businessSlug)
+    .single();
+  if (existing) {
+    return { error: "Ese identificador ya está en uso. Elegí otro.", field: "businessSlug" };
+  }
+
+  const { data: freePlan } = await admin.from("plans").select("id").eq("name", "free").single();
+  if (!freePlan) return { error: "Error interno: plan no encontrado." };
+
+  const trialEndsAt = new Date(Date.now() + 14 * 24 * 60 * 60 * 1000).toISOString();
+  const ownerName =
+    d.ownerName?.trim() ||
+    (user.user_metadata as Record<string, string> | null)?.["full_name"] ||
+    user.email?.split("@")[0] ||
+    "Propietario";
+
+  const { data: org, error: orgError } = await admin
+    .from("organizations")
+    .insert({
+      name:          d.businessName,
+      slug:          d.businessSlug,
+      timezone:      d.businessTimezone,
+      phone:         d.businessPhone  ?? null,
+      rubro:         d.businessRubros[0] ?? null,
+      rubros:        d.businessRubros,
+      city:          d.businessCity   ?? null,
+      plan_id:       freePlan.id,
+      trial_ends_at: trialEndsAt,
+      is_listed:     true,
+      settings:      { onboarding_completed: false, owner_user_id: user.id },
+    })
+    .select("id")
+    .single();
+
+  if (orgError || !org) {
+    console.error("[google-register] org error:", orgError);
+    return { error: "Error al crear el negocio." };
+  }
+
+  const orgId = org.id as string;
+
+  await admin.from("organization_members").insert({
+    organization_id: orgId,
+    user_id:         user.id,
+    role:            "owner",
+  });
+
+  const { data: staff } = await admin
+    .from("staff")
+    .insert({ organization_id: orgId, name: ownerName, email: user.email ?? "", color: "#6366f1", is_active: true })
+    .select("id")
+    .single();
+
+  const staffId = (staff as { id: string } | null)?.id;
+
+  const { data: defaultCat } = await admin
+    .from("service_categories")
+    .insert({ organization_id: orgId, name: d.serviceCategory, color: "#6366F1" })
+    .select("id")
+    .single();
+
+  await admin.from("services").insert({
+    organization_id:  orgId,
+    name:             d.serviceName,
+    category:         d.serviceCategory,
+    category_id:      defaultCat?.id ?? null,
+    duration_minutes: d.serviceDuration,
+    price:            d.servicePrice ?? 0,
+    color:            "#3B82F6",
+    is_active:        true,
+  });
+
+  if (staffId) {
+    const rows: Array<{
+      organization_id: string;
+      staff_id:        string;
+      day_of_week:     number;
+      start_time:      string;
+      end_time:        string;
+      is_active:       boolean;
+    }> = [];
+
+    for (const [dayStr, blocks] of Object.entries(d.weekSchedule)) {
+      const day = Number(dayStr);
+      for (const block of blocks) {
+        rows.push({
+          organization_id: orgId,
+          staff_id:        staffId,
+          day_of_week:     day,
+          start_time:      block.start_time + ":00",
+          end_time:        block.end_time   + ":00",
+          is_active:       true,
+        });
+      }
+    }
+    if (rows.length > 0) await admin.from("schedules").insert(rows);
+  }
 
   return { success: true, orgSlug: d.businessSlug };
 }

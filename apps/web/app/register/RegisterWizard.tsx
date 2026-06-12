@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Check, ChevronRight, Building2, User, Scissors, Clock } from "lucide-react";
-import { registerAction } from "@/lib/actions/auth";
+import { registerAction, completeGoogleRegistration } from "@/lib/actions/auth";
 import WeekScheduleEditor, { defaultWeekSchedule, type WeekSchedule } from "@/components/WeekScheduleEditor";
 import { RUBROS } from "@/lib/rubros";
 import CityAutocomplete from "@/components/CityAutocomplete";
@@ -66,17 +66,21 @@ function slugify(str: string) {
 export default function RegisterWizard({
   initialPlan,
   platformCategories,
+  googleMode = false,
+  googleDisplayName = "",
 }: {
   initialPlan: string;
   platformCategories: PlatformCategory[];
+  googleMode?: boolean;
+  googleDisplayName?: string;
 }) {
   const router  = useRouter();
-  const [step,    setStep]    = useState<Step>(1);
+  const [step,    setStep]    = useState<Step>(googleMode ? 2 : 1);
   const [loading, setLoading] = useState(false);
   const [errors,  setErrors]  = useState<Partial<Record<keyof FormData | "submit", string>>>({});
 
   const [form, setForm] = useState<FormData>({
-    ownerName:         "",
+    ownerName:         googleDisplayName,
     email:             "",
     password:          "",
     confirmPassword:   "",
@@ -130,13 +134,15 @@ export default function RegisterWizard({
   }
 
   function next()  { if (!validateStep(step)) return; setStep((s) => Math.min(s + 1, 4) as Step); }
-  function back()  { setStep((s) => Math.max(s - 1, 1) as Step); }
+  function back()  { setStep((s) => Math.max(s - 1, googleMode ? 2 : 1) as Step); }
 
   async function submit() {
     if (!validateStep(4)) return;
     setLoading(true);
     try {
-      const result = await registerAction({ ...form, plan: initialPlan });
+      const result = googleMode
+        ? await completeGoogleRegistration({ ...form, plan: initialPlan })
+        : await registerAction({ ...form, plan: initialPlan });
       if ("error" in result) { setErrors({ submit: result.error }); return; }
       router.push("/dashboard?onboarding=1");
     } catch {
@@ -154,11 +160,12 @@ export default function RegisterWizard({
           <div key={s} className="flex items-center flex-1 last:flex-none">
             <div className="flex flex-col items-center">
               <div className={`w-9 h-9 rounded-full flex items-center justify-center border-2 text-sm font-semibold transition-colors ${
-                s < step  ? "bg-primary border-primary text-primary-foreground"
-                : s === step ? "border-primary text-primary"
-                : "border-muted-foreground/30 text-muted-foreground/50"
+                s < step || (googleMode && s === 1)
+                  ? "bg-primary border-primary text-primary-foreground"
+                  : s === step ? "border-primary text-primary"
+                  : "border-muted-foreground/30 text-muted-foreground/50"
               }`}>
-                {s < step ? <Check className="w-4 h-4" /> : <Icon className="w-4 h-4" />}
+                {s < step || (googleMode && s === 1) ? <Check className="w-4 h-4" /> : <Icon className="w-4 h-4" />}
               </div>
               <span className={`text-xs mt-1.5 font-medium hidden sm:block ${s === step ? "text-foreground" : "text-muted-foreground"}`}>
                 {label}
