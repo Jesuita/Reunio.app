@@ -6,7 +6,7 @@ import { PLANS, type PlanName } from "@/lib/plans";
 import { getOrCreateStripeCustomer, createCheckoutSession } from "@/lib/stripe";
 
 const bodySchema = z.object({
-  plan: z.enum(["pro", "business"]),
+  plan: z.enum(["starter", "pro", "business"]),
 });
 
 export async function POST(req: NextRequest) {

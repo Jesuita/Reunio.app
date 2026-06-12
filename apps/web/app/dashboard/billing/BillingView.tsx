@@ -3,7 +3,9 @@
 import { useState } from "react";
 import { PLANS, type PlanName } from "@/lib/plans";
 import { Button } from "@/components/ui/button";
-import { Check, Zap } from "lucide-react";
+import { Check, Zap, ArrowUp, ArrowDown, Settings } from "lucide-react";
+
+const PLAN_ORDER: PlanName[] = ["free", "starter", "pro", "business"];
 
 const PLAN_FEATURES: Record<PlanName, string[]> = {
   free: [
@@ -55,7 +57,10 @@ export default function BillingView({
   const [loading, setLoading] = useState<PlanName | null>(null);
   const [portalLoading, setPortalLoading] = useState(false);
 
-  async function handleUpgrade(plan: PlanName) {
+  const currentIdx = PLAN_ORDER.indexOf(currentPlan);
+  const isPaid = currentPlan !== "free";
+
+  async function handleCheckout(plan: PlanName) {
     setLoading(plan);
     const res = await fetch("/api/billing/create-checkout", {
       method: "POST",
@@ -75,8 +80,76 @@ export default function BillingView({
     setPortalLoading(true);
     const res = await fetch("/api/billing/portal", { method: "POST" });
     const data = await res.json();
-    if (data.url) window.location.href = data.url;
+    if (data.url) {
+      window.location.href = data.url;
+    } else {
+      alert("Error al abrir el portal. Intentá de nuevo.");
+    }
     setPortalLoading(false);
+  }
+
+  function renderCTA(plan: PlanName) {
+    const targetIdx = PLAN_ORDER.indexOf(plan);
+    const isCurrent = plan === currentPlan;
+
+    if (isCurrent) {
+      return (
+        <Button variant="outline" disabled className="w-full">
+          Plan actual
+        </Button>
+      );
+    }
+
+    // Downgrade to free: go to portal to cancel subscription
+    if (plan === "free") {
+      if (!isPaid) return null;
+      return (
+        <Button
+          variant="ghost"
+          className="w-full text-muted-foreground text-sm"
+          onClick={handlePortal}
+          disabled={portalLoading}
+        >
+          {portalLoading ? "Cargando..." : "Cancelar suscripción"}
+        </Button>
+      );
+    }
+
+    // Change between paid plans: go to portal (handles proration)
+    if (isPaid && targetIdx !== currentIdx) {
+      const isUpgrade = targetIdx > currentIdx;
+      return (
+        <Button
+          variant={isUpgrade ? "default" : "outline"}
+          className="w-full gap-1.5"
+          onClick={handlePortal}
+          disabled={portalLoading}
+        >
+          {portalLoading ? (
+            "Cargando..."
+          ) : isUpgrade ? (
+            <><ArrowUp className="w-3.5 h-3.5" /> Cambiar a {PLANS[plan].label}</>
+          ) : (
+            <><ArrowDown className="w-3.5 h-3.5" /> Cambiar a {PLANS[plan].label}</>
+          )}
+        </Button>
+      );
+    }
+
+    // New subscription (currently on free): open Stripe Checkout
+    return (
+      <Button
+        className="w-full gap-1.5"
+        onClick={() => handleCheckout(plan)}
+        disabled={loading !== null}
+      >
+        {loading === plan ? (
+          "Redirigiendo..."
+        ) : (
+          <><Zap className="w-3.5 h-3.5" /> Activar {PLANS[plan].label}</>
+        )}
+      </Button>
+    );
   }
 
   return (
@@ -89,12 +162,23 @@ export default function BillingView({
             <p className="text-2xl font-bold mt-0.5">{planLabel}</p>
             {expiresAt && (
               <p className="text-sm text-muted-foreground mt-1">
-                Renueva el {new Date(expiresAt).toLocaleDateString("es-AR", { day: "numeric", month: "long", year: "numeric" })}
+                Renueva el{" "}
+                {new Date(expiresAt).toLocaleDateString("es-AR", {
+                  day: "numeric",
+                  month: "long",
+                  year: "numeric",
+                })}
+              </p>
+            )}
+            {!isPaid && (
+              <p className="text-sm text-muted-foreground mt-1">
+                Actualizá tu plan para desbloquear más funcionalidades.
               </p>
             )}
           </div>
-          {hasCustomer && currentPlan !== "free" && (
-            <Button variant="outline" onClick={handlePortal} disabled={portalLoading}>
+          {isPaid && hasCustomer && (
+            <Button variant="outline" onClick={handlePortal} disabled={portalLoading} className="gap-2">
+              <Settings className="w-4 h-4" />
               {portalLoading ? "Cargando..." : "Gestionar suscripción"}
             </Button>
           )}
@@ -106,7 +190,8 @@ export default function BillingView({
         {(["free", "starter", "pro", "business"] as PlanName[]).map((plan) => {
           const p = PLANS[plan];
           const isCurrent = plan === currentPlan;
-          const features = PLAN_FEATURES[plan];
+          const targetIdx = PLAN_ORDER.indexOf(plan);
+          const isUpgrade = targetIdx > currentIdx;
 
           return (
             <div
@@ -124,7 +209,18 @@ export default function BillingView({
               )}
 
               <div className="mb-4">
-                <h3 className="font-bold text-lg">{p.label}</h3>
+                <div className="flex items-center gap-2">
+                  <h3 className="font-bold text-lg">{p.label}</h3>
+                  {!isCurrent && plan !== "free" && (
+                    <span className={`text-xs px-1.5 py-0.5 rounded font-medium ${
+                      isUpgrade
+                        ? "bg-green-50 text-green-700"
+                        : "bg-muted text-muted-foreground"
+                    }`}>
+                      {isUpgrade ? "↑ upgrade" : "↓ downgrade"}
+                    </span>
+                  )}
+                </div>
                 <div className="mt-2">
                   {p.priceUsd === 0 ? (
                     <span className="text-2xl font-bold">Gratis</span>
@@ -143,7 +239,7 @@ export default function BillingView({
               </div>
 
               <ul className="space-y-2 flex-1 mb-5">
-                {features.map((f) => (
+                {PLAN_FEATURES[plan].map((f) => (
                   <li key={f} className="flex items-start gap-2 text-sm">
                     <Check className="w-4 h-4 text-green-500 shrink-0 mt-0.5" />
                     <span>{f}</span>
@@ -151,27 +247,22 @@ export default function BillingView({
                 ))}
               </ul>
 
-              {isCurrent ? (
-                <Button variant="outline" disabled className="w-full">
-                  Plan actual
-                </Button>
-              ) : plan === "free" ? (
-                <Button variant="outline" disabled className="w-full">
-                  Degradar a Free
-                </Button>
-              ) : (
-                <Button
-                  className="w-full"
-                  onClick={() => handleUpgrade(plan)}
-                  disabled={loading !== null}
-                >
-                  {loading === plan ? "Redirigiendo..." : `Activar ${p.label}`}
-                </Button>
-              )}
+              {renderCTA(plan)}
             </div>
           );
         })}
       </div>
+
+      {isPaid && (
+        <p className="text-xs text-muted-foreground text-center">
+          Los cambios de plan se aplican inmediatamente con prorrateo automático.
+          Para cancelar o cambiar método de pago, usá{" "}
+          <button onClick={handlePortal} className="underline hover:text-foreground">
+            Gestionar suscripción
+          </button>
+          .
+        </p>
+      )}
     </div>
   );
 }
