@@ -8,15 +8,22 @@ import { Check, Zap } from "lucide-react";
 const PLAN_FEATURES: Record<PlanName, string[]> = {
   free: [
     "1 profesional",
+    "1 servicio",
     "30 turnos/mes",
-    "Hasta 5 servicios",
     "Página de reservas pública",
     "Dashboard básico",
+    "Gestión de clientes",
+  ],
+  starter: [
+    "Hasta 2 profesionales",
+    "Hasta 3 servicios",
+    "200 turnos/mes",
+    "Reportes básicos",
   ],
   pro: [
-    "Hasta 5 profesionales",
-    "Turnos ilimitados",
+    "Hasta 10 profesionales",
     "Servicios ilimitados",
+    "500 turnos/mes",
     "Recordatorios WhatsApp",
     "Cobro de señas (Mercado Pago)",
     "Reportes completos + exportar CSV",
@@ -24,6 +31,7 @@ const PLAN_FEATURES: Record<PlanName, string[]> = {
   ],
   business: [
     "Profesionales ilimitados",
+    "Turnos ilimitados",
     "Múltiples sucursales",
     "Widget embebible",
     "API pública",
@@ -94,8 +102,8 @@ export default function BillingView({
       </div>
 
       {/* Plan comparison */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-        {(["free", "pro", "business"] as PlanName[]).map((plan) => {
+      <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+        {(["free", "starter", "pro", "business"] as PlanName[]).map((plan) => {
           const p = PLANS[plan];
           const isCurrent = plan === currentPlan;
           const features = PLAN_FEATURES[plan];

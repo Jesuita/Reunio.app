@@ -44,10 +44,11 @@ export async function checkPlanLimit(
         .eq("organization_id", organizationId)
         .eq("is_active", true);
       if ((count ?? 0) >= limits.maxStaff) {
+        const next = planName === "free" ? "starter" : planName === "starter" ? "pro" : "business";
         return {
           allowed: false,
           reason: `Llegaste al límite de ${limits.maxStaff} profesional${limits.maxStaff !== 1 ? "es" : ""} en el plan ${plan.label}.`,
-          upgradeRequired: planName === "free" ? "pro" : "business",
+          upgradeRequired: next,
         };
       }
       return { allowed: true };
@@ -61,10 +62,11 @@ export async function checkPlanLimit(
         .eq("organization_id", organizationId)
         .eq("is_active", true);
       if ((count ?? 0) >= limits.maxServices) {
+        const next = planName === "free" ? "starter" : planName === "starter" ? "pro" : "business";
         return {
           allowed: false,
-          reason: `Llegaste al límite de ${limits.maxServices} servicios en el plan ${plan.label}.`,
-          upgradeRequired: "pro",
+          reason: `Llegaste al límite de ${limits.maxServices} servicio${limits.maxServices !== 1 ? "s" : ""} en el plan ${plan.label}.`,
+          upgradeRequired: next,
         };
       }
       return { allowed: true };
@@ -81,10 +83,11 @@ export async function checkPlanLimit(
         .gte("created_at", monthStart)
         .neq("status", "cancelled");
       if ((count ?? 0) >= limits.maxBookingsPerMonth) {
+        const next = planName === "free" ? "starter" : planName === "starter" ? "pro" : "business";
         return {
           allowed: false,
           reason: `Llegaste al límite de ${limits.maxBookingsPerMonth} turnos por mes en el plan ${plan.label}.`,
-          upgradeRequired: "pro",
+          upgradeRequired: next,
         };
       }
       return { allowed: true };
@@ -94,7 +97,7 @@ export async function checkPlanLimit(
       if (!limits.whatsappReminders) {
         return {
           allowed: false,
-          reason: "Los recordatorios por WhatsApp no están disponibles en el plan Free.",
+          reason: "Los recordatorios por WhatsApp requieren el plan Pro o superior.",
           upgradeRequired: "pro",
         };
       }
@@ -104,7 +107,7 @@ export async function checkPlanLimit(
       if (!limits.onlinePayments) {
         return {
           allowed: false,
-          reason: "El cobro de señas online no está disponible en el plan Free.",
+          reason: "El cobro de señas online requiere el plan Pro o superior.",
           upgradeRequired: "pro",
         };
       }

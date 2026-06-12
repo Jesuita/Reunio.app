@@ -2,7 +2,7 @@
  * Reunio SaaS plan definitions and limit enforcement.
  */
 
-export type PlanName = "free" | "pro" | "business";
+export type PlanName = "free" | "starter" | "pro" | "business";
 
 export type PlanLimits = {
   maxStaff:            number | null;
@@ -36,7 +36,25 @@ export const PLANS: Record<PlanName, Plan> = {
     limits: {
       maxStaff:            1,
       maxBookingsPerMonth: 30,
-      maxServices:         5,
+      maxServices:         1,
+      whatsappReminders:   false,
+      onlinePayments:      false,
+      multiLocation:       false,
+      apiAccess:           false,
+      customBranding:      false,
+      reports:             "basic",
+    },
+  },
+  starter: {
+    name:          "starter",
+    label:         "Starter",
+    priceArs:      6000,
+    priceUsd:      6,
+    stripePriceId: process.env["STRIPE_PRICE_STARTER"] ?? null,
+    limits: {
+      maxStaff:            2,
+      maxBookingsPerMonth: 200,
+      maxServices:         3,
       whatsappReminders:   false,
       onlinePayments:      false,
       multiLocation:       false,
@@ -53,8 +71,8 @@ export const PLANS: Record<PlanName, Plan> = {
     stripePriceId: process.env["STRIPE_PRICE_PRO"] ?? null,
     highlight:     "Más popular",
     limits: {
-      maxStaff:            5,
-      maxBookingsPerMonth: null,
+      maxStaff:            10,
+      maxBookingsPerMonth: 500,
       maxServices:         null,
       whatsappReminders:   true,
       onlinePayments:      true,

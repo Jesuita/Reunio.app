@@ -11,16 +11,25 @@ export const metadata: Metadata = {
 const FEATURES_BY_PLAN = {
   free: [
     "1 profesional",
+    "1 servicio",
     "30 turnos por mes",
-    "Hasta 5 servicios",
     "Página de reservas pública",
     "Dashboard básico",
     "Gestión de clientes",
   ],
+  starter: [
+    "Hasta 2 profesionales",
+    "Hasta 3 servicios",
+    "200 turnos por mes",
+    "Página de reservas pública",
+    "Dashboard básico",
+    "Gestión de clientes",
+    "Reportes básicos",
+  ],
   pro: [
-    "Hasta 5 profesionales",
-    "Turnos ilimitados",
+    "Hasta 10 profesionales",
     "Servicios ilimitados",
+    "500 turnos por mes",
     "Recordatorios automáticos por WhatsApp",
     "Cobro de señas online (Mercado Pago)",
     "Reportes completos + exportar CSV",
@@ -29,12 +38,12 @@ const FEATURES_BY_PLAN = {
   ],
   business: [
     "Profesionales ilimitados",
+    "Turnos ilimitados",
     "Todo lo de Pro",
     "Múltiples sucursales",
     "Widget embebible para tu sitio",
     "API pública para integraciones",
     "Branding personalizado",
-    "Subdominio propio",
     "Soporte prioritario",
   ],
 };
@@ -88,14 +97,14 @@ export default function PricingPage() {
             Planes simples y transparentes
           </h1>
           <p className="text-xl text-muted-foreground max-w-2xl mx-auto">
-            Empezá gratis con hasta 30 turnos por mes. Sin tarjeta de crédito.
+            Empezá gratis. Sin tarjeta de crédito.
             Actualizá cuando tu negocio crezca.
           </p>
         </div>
 
         {/* Plans grid */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-16">
-          {(["free", "pro", "business"] as const).map((planKey) => {
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-16">
+          {(["free", "starter", "pro", "business"] as const).map((planKey) => {
             const plan = PLANS[planKey];
             const features = FEATURES_BY_PLAN[planKey];
 
