@@ -511,60 +511,83 @@ function Testimonials() {
 
 const PRICING_PLANS = [
   {
-    key: "free",
-    label: "Gratis",
+    key:     "free",
+    label:   PLANS.free.label,
     tagline: "Para probar sin riesgos",
-    price: 0,
-    cta: "Empezar gratis",
-    href: "/register",
+    priceArs: PLANS.free.priceArs,
+    priceUsd: PLANS.free.priceUsd,
+    cta:     "Empezar gratis",
+    href:    "/register",
     popular: false,
     features: [
-      { text: "1 profesional", included: true },
-      { text: "30 turnos por mes", included: true },
-      { text: "Hasta 5 servicios", included: true },
-      { text: "Página de reservas pública", included: true },
-      { text: "Confirmación por email", included: true },
-      { text: "Recordatorios por WhatsApp", included: false },
-      { text: "Cobro de señas (Mercado Pago)", included: false },
-      { text: "Múltiples profesionales", included: false },
+      { text: "1 profesional",                  included: true  },
+      { text: "1 servicio",                     included: true  },
+      { text: "30 turnos por mes",              included: true  },
+      { text: "Página de reservas pública",     included: true  },
+      { text: "Dashboard básico",               included: true  },
+      { text: "Gestión de clientes",            included: true  },
+      { text: "Recordatorios por WhatsApp",     included: false },
+      { text: "Cobro de señas (Mercado Pago)",  included: false },
     ],
   },
   {
-    key: "pro",
-    label: "Pro",
-    tagline: "Para negocios en crecimiento",
-    price: 8900,
-    cta: "Empezar 14 días gratis",
-    href: "/register?plan=pro",
+    key:     "starter",
+    label:   PLANS.starter.label,
+    tagline: "Para negocios que crecen",
+    priceArs: PLANS.starter.priceArs,
+    priceUsd: PLANS.starter.priceUsd,
+    cta:     "Empezar con Starter",
+    href:    "/register?plan=starter",
+    popular: false,
+    features: [
+      { text: "Hasta 2 profesionales",          included: true  },
+      { text: "Hasta 3 servicios",              included: true  },
+      { text: "200 turnos por mes",             included: true  },
+      { text: "Página de reservas pública",     included: true  },
+      { text: "Reportes básicos",               included: true  },
+      { text: "Recordatorios por WhatsApp",     included: false },
+      { text: "Cobro de señas (Mercado Pago)",  included: false },
+      { text: "Widget embebible",               included: false },
+    ],
+  },
+  {
+    key:     "pro",
+    label:   PLANS.pro.label,
+    tagline: "Para negocios en pleno movimiento",
+    priceArs: PLANS.pro.priceArs,
+    priceUsd: PLANS.pro.priceUsd,
+    cta:     "Activar Pro",
+    href:    "/register?plan=pro",
     popular: true,
     features: [
-      { text: "Hasta 5 profesionales", included: true },
-      { text: "Turnos ilimitados", included: true },
-      { text: "Servicios ilimitados", included: true },
-      { text: "Página de reservas pública", included: true },
-      { text: "Confirmación por email", included: true },
-      { text: "Recordatorios por WhatsApp", included: true },
-      { text: "Cobro de señas (Mercado Pago)", included: true },
-      { text: "Dashboard + CRM de clientes", included: true },
+      { text: "Hasta 10 profesionales",         included: true  },
+      { text: "Servicios ilimitados",           included: true  },
+      { text: "500 turnos por mes",             included: true  },
+      { text: "Recordatorios por WhatsApp",     included: true  },
+      { text: "Cobro de señas (Mercado Pago)",  included: true  },
+      { text: "Reportes completos + CSV",       included: true  },
+      { text: "CRM de clientes avanzado",       included: true  },
+      { text: "Widget embebible",               included: false },
     ],
   },
   {
-    key: "business",
-    label: "Business",
+    key:     "business",
+    label:   PLANS.business.label,
     tagline: "Para cadenas y equipos grandes",
-    price: 22900,
-    cta: "Hablar con ventas",
-    href: "/register?plan=business",
+    priceArs: PLANS.business.priceArs,
+    priceUsd: PLANS.business.priceUsd,
+    cta:     "Activar Business",
+    href:    "/register?plan=business",
     popular: false,
     features: [
-      { text: "Profesionales ilimitados", included: true },
-      { text: "Turnos ilimitados", included: true },
-      { text: "Todo lo del plan Pro", included: true },
-      { text: "Múltiples sucursales", included: true },
-      { text: "Widget embebible en tu web", included: true },
-      { text: "API pública (v1)", included: true },
-      { text: "Branding personalizado", included: true },
-      { text: "Soporte prioritario", included: true },
+      { text: "Profesionales ilimitados",       included: true  },
+      { text: "Turnos ilimitados",              included: true  },
+      { text: "Todo lo del plan Pro",           included: true  },
+      { text: "Múltiples sucursales",           included: true  },
+      { text: "Widget embebible en tu web",     included: true  },
+      { text: "API pública",                    included: true  },
+      { text: "Branding personalizado",         included: true  },
+      { text: "Soporte prioritario",            included: true  },
     ],
   },
 ];
@@ -588,7 +611,7 @@ function PricingPreview() {
         </div>
 
         {/* Cards */}
-        <div className="grid md:grid-cols-3 gap-5 items-start">
+        <div className="grid md:grid-cols-4 gap-5 items-start">
           {PRICING_PLANS.map((plan) => (
             <div
               key={plan.key}
@@ -617,7 +640,7 @@ function PricingPreview() {
 
                 {/* Price */}
                 <div className="mb-7 pb-7 border-b border-white/10">
-                  {plan.price === 0 ? (
+                  {plan.priceUsd === 0 ? (
                     <div>
                       <span className="text-5xl font-black text-white">Gratis</span>
                       <p className="text-white/30 text-sm mt-1">para siempre</p>
@@ -625,12 +648,12 @@ function PricingPreview() {
                   ) : (
                     <div>
                       <div className="flex items-end gap-1">
-                        <span className="text-white/40 text-xl font-semibold self-start mt-2">$</span>
-                        <span className="text-5xl font-black text-white">{(plan.price / 1000).toFixed(plan.price % 1000 === 0 ? 0 : 1)}k</span>
-                        <span className="text-white/40 text-sm mb-1.5">ARS/mes</span>
+                        <span className="text-white/40 text-base font-semibold self-start mt-2">USD</span>
+                        <span className="text-5xl font-black text-white">{plan.priceUsd}</span>
+                        <span className="text-white/40 text-sm mb-1.5">/mes</span>
                       </div>
                       <p className="text-white/30 text-xs mt-1">
-                        ≈ ${Math.round(plan.price / 30).toLocaleString("es-AR")} / día
+                        ≈ ${plan.priceArs.toLocaleString("es-AR")} ARS
                       </p>
                     </div>
                   )}
