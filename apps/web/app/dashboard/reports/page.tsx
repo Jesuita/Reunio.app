@@ -1,7 +1,10 @@
 import { createClient } from "@/lib/supabase/server";
 import { requireAuth } from "@/lib/auth";
+import { type PlanName } from "@/lib/plans";
 import ReportsView from "./ReportsView";
+import UpgradeGate from "../UpgradeGate";
 
+const PLAN_ORDER: PlanName[] = ["free", "starter", "pro", "business"];
 
 export default async function ReportsPage({
   searchParams,
@@ -10,6 +13,15 @@ export default async function ReportsPage({
 }) {
   const { organizationId: ORG_ID } = await requireAuth();
   const supabase = createClient();
+
+  // Plan check
+  const { data: orgPlan } = await supabase
+    .from("organizations").select("plans(name)").eq("id", ORG_ID).single();
+  const planName = ((orgPlan?.plans as { name?: string } | null)?.name ?? "free") as PlanName;
+  if (PLAN_ORDER.indexOf(planName) < PLAN_ORDER.indexOf("starter")) {
+    return <UpgradeGate requiredPlan="starter" featureName="Reportes" />;
+  }
+
   const period = searchParams.period ?? "month";
 
   const now = new Date();

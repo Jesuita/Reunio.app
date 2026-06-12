@@ -1,24 +1,39 @@
 import Link from "next/link";
-import { Calendar, Scissors, Users, LayoutDashboard, BookOpen, UserSquare2, BarChart2, Settings, CreditCard, Code2, Tag } from "lucide-react";
+import {
+  Calendar, Scissors, Users, LayoutDashboard, BookOpen,
+  UserSquare2, BarChart2, Settings, CreditCard, Code2, Tag,
+} from "lucide-react";
 import { requireAuth } from "@/lib/auth";
+import { createClient } from "@/lib/supabase/server";
+import { type PlanName } from "@/lib/plans";
 import LogoutButton from "./LogoutButton";
+import SidebarNav, { type NavItem } from "./SidebarNav";
 
-const navItems = [
-  { href: "/dashboard",             label: "Resumen",      icon: LayoutDashboard },
-  { href: "/dashboard/calendar",    label: "Agenda",       icon: Calendar },
-  { href: "/dashboard/bookings",    label: "Turnos",       icon: BookOpen },
-  { href: "/dashboard/clients",     label: "Clientes",     icon: UserSquare2 },
-  { href: "/dashboard/services",    label: "Servicios",    icon: Scissors },
-  { href: "/dashboard/categories",  label: "Categorías",   icon: Tag },
-  { href: "/dashboard/staff",       label: "Personal",     icon: Users },
-  { href: "/dashboard/reports",     label: "Reportes",     icon: BarChart2 },
-  { href: "/dashboard/settings",    label: "Config",       icon: Settings },
-  { href: "/dashboard/billing",     label: "Facturación",  icon: CreditCard },
-  { href: "/dashboard/widget",      label: "Widget",       icon: Code2 },
+const navItems: NavItem[] = [
+  { href: "/dashboard",            label: "Resumen",     icon: LayoutDashboard },
+  { href: "/dashboard/calendar",   label: "Agenda",      icon: Calendar },
+  { href: "/dashboard/bookings",   label: "Turnos",      icon: BookOpen },
+  { href: "/dashboard/clients",    label: "Clientes",    icon: UserSquare2 },
+  { href: "/dashboard/services",   label: "Servicios",   icon: Scissors },
+  { href: "/dashboard/categories", label: "Categorías",  icon: Tag },
+  { href: "/dashboard/staff",      label: "Personal",    icon: Users },
+  { href: "/dashboard/reports",    label: "Reportes",    icon: BarChart2,  requiredPlan: "starter" },
+  { href: "/dashboard/settings",   label: "Config",      icon: Settings },
+  { href: "/dashboard/billing",    label: "Facturación", icon: CreditCard },
+  { href: "/dashboard/widget",     label: "Widget",      icon: Code2,      requiredPlan: "pro" },
 ];
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const user = await requireAuth();
+
+  const supabase = createClient();
+  const { data: org } = await supabase
+    .from("organizations")
+    .select("plans(name)")
+    .eq("id", user.organizationId)
+    .single();
+
+  const currentPlan = ((org?.plans as { name?: string } | null)?.name ?? "free") as PlanName;
 
   return (
     <div className="flex min-h-screen bg-muted/30">
@@ -28,20 +43,10 @@ export default async function DashboardLayout({ children }: { children: React.Re
           <span className="font-bold text-lg tracking-tight">Reunio</span>
           <span className="ml-2 text-xs text-muted-foreground font-medium">Admin</span>
         </div>
-        <nav className="flex-1 py-4 px-3 space-y-1">
-          {navItems.map(({ href, label, icon: Icon }) => (
-            <Link
-              key={href}
-              href={href}
-              className="flex items-center gap-3 px-3 py-2 rounded-md text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-accent transition-colors"
-            >
-              <Icon className="w-4 h-4 shrink-0" />
-              {label}
-            </Link>
-          ))}
-        </nav>
+
+        <SidebarNav items={navItems} currentPlan={currentPlan} />
+
         <div className="p-4 border-t space-y-2">
-          {/* User info */}
           <p className="text-xs text-muted-foreground truncate px-1">{user.email}</p>
           <div className="flex items-center justify-between">
             <Link
