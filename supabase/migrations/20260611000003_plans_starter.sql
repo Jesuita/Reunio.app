@@ -17,6 +17,15 @@ update plans set
   label                   = 'Free'
 where name = 'free';
 
+-- Agregar unique constraint en name si no existe
+do $$ begin
+  if not exists (
+    select 1 from pg_constraint where conname = 'plans_name_key'
+  ) then
+    alter table plans add constraint plans_name_key unique (name);
+  end if;
+end $$;
+
 -- Insertar Starter (si no existe)
 insert into plans (
   id, name, label, price_ars, price_usd,
