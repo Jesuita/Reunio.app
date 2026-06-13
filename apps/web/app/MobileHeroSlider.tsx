@@ -326,28 +326,27 @@ export default function MobileHeroSlider() {
   }
 
   return (
-    <section className="relative flex flex-col bg-[#070710] overflow-hidden" style={{ height: "100svh" }}>
-      {/* Background photo — top-right, very visible */}
+    <section className="relative flex flex-col bg-[#070710] overflow-hidden" style={{ height: "100svh", fontFamily: "var(--font-plus-jakarta), sans-serif" }}>
+      {/* Background photo — full cover, top-right, very visible */}
       {SLIDES.map((s, i) => (
         <div
           key={i}
           className="absolute inset-0 transition-opacity duration-700"
           style={{
             backgroundImage: `url(${s.img})`,
-            backgroundSize: "70% auto",
-            backgroundPosition: "top right",
-            backgroundRepeat: "no-repeat",
+            backgroundSize: "cover",
+            backgroundPosition: "center top",
             opacity: i === current ? 1 : 0,
           }}
         />
       ))}
-      {/* Left vignette — protects text, photo bleeds in freely on the right */}
+      {/* Strong left gradient — dark left half, photo bleeds through on the right */}
       <div
         className="absolute inset-0"
-        style={{ background: "linear-gradient(100deg, #070710 28%, rgba(7,7,16,0.85) 45%, rgba(7,7,16,0.2) 70%, transparent 100%)" }}
+        style={{ background: "linear-gradient(95deg, #070710 35%, rgba(7,7,16,0.82) 52%, rgba(7,7,16,0.35) 72%, rgba(7,7,16,0.05) 100%)" }}
       />
-      {/* Bottom fade so card area is readable */}
-      <div className="absolute inset-0 bg-gradient-to-t from-[#070710] via-[#070710]/80 to-transparent" />
+      {/* Bottom fade for card readability */}
+      <div className="absolute inset-0" style={{ background: "linear-gradient(to top, #070710 30%, rgba(7,7,16,0.9) 50%, transparent 72%)" }} />
 
       {/* Content */}
       <div className="relative z-10 flex flex-col h-full">
@@ -422,8 +421,8 @@ export default function MobileHeroSlider() {
           {/* Headline */}
           <h1
             key={current + "-h1"}
-            className="font-extrabold text-white leading-[1.08] mb-3 whitespace-pre-line"
-            style={{ fontSize: "clamp(2.1rem, 10.5vw, 2.75rem)", animation: "mhUp 0.45s ease both" }}
+            className="font-extrabold text-white leading-[1.06] mb-3 whitespace-pre-line"
+            style={{ fontSize: "clamp(2.3rem, 11.5vw, 3rem)", animation: "mhUp 0.45s ease both" }}
           >
             {renderHeadline()}
           </h1>
@@ -431,29 +430,29 @@ export default function MobileHeroSlider() {
           {/* Sub */}
           <p
             key={current + "-sub"}
-            className="text-[15px] text-white/75 leading-snug mb-4 whitespace-pre-line"
+            className="text-base text-white/80 leading-snug mb-4 whitespace-pre-line"
             style={{ animation: "mhUp 0.5s ease both" }}
           >
             {slide.sub}
           </p>
 
-          {/* Benefits — icon box + value bold + label muted */}
+          {/* Benefits */}
           <div
             key={current + "-ben"}
-            className="flex gap-3 mb-4"
+            className="flex gap-4 mb-3"
             style={{ animation: "mhUp 0.55s ease both" }}
           >
             {slide.benefits.map((b, i) => (
-              <div key={i} className="flex items-center gap-2 min-w-0">
+              <div key={i} className="flex items-center gap-2">
                 <div
-                  className="w-8 h-8 rounded-xl flex items-center justify-center shrink-0"
-                  style={{ backgroundColor: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.15)" }}
+                  className="w-8 h-8 rounded-lg flex items-center justify-center shrink-0"
+                  style={{ backgroundColor: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.12)" }}
                 >
-                  <span className="text-white/80">{b.icon}</span>
+                  <span className="text-white/70">{b.icon}</span>
                 </div>
-                <div className="min-w-0">
-                  <p className="text-xs font-bold text-white leading-none truncate">{b.value}</p>
-                  <p className="text-[10px] text-white/50 leading-tight mt-0.5 truncate">{b.label}</p>
+                <div>
+                  <p className="text-sm font-bold text-white leading-tight">{b.value}</p>
+                  <p className="text-[11px] text-white/45 leading-tight">{b.label}</p>
                 </div>
               </div>
             ))}
