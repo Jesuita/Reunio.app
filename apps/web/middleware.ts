@@ -10,7 +10,15 @@ const ADMIN_ONLY = [
 ];
 
 export async function middleware(req: NextRequest) {
-  const { pathname } = req.nextUrl;
+  const { pathname, searchParams } = req.nextUrl;
+
+  // Supabase OAuth sometimes redirects to the Site URL (/) with ?code= instead of /auth/callback
+  // Intercept it and forward to the proper callback handler
+  if (pathname === "/" && searchParams.has("code")) {
+    const callbackUrl = new URL("/auth/callback", req.url);
+    callbackUrl.searchParams.set("code", searchParams.get("code")!);
+    return NextResponse.redirect(callbackUrl);
+  }
 
   let response = NextResponse.next({
     request: req,
@@ -76,6 +84,7 @@ export async function middleware(req: NextRequest) {
 
 export const config = {
   matcher: [
+    "/",
     "/dashboard/:path*",
     "/admin/:path*",
     "/login",
