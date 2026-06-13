@@ -9,6 +9,7 @@ import { PLANS } from "@/lib/plans";
 import { RUBRO_CONFIG } from "@/lib/rubros";
 import HeroSlider from "./HeroSlider";
 import MobileHeroSlider from "./MobileHeroSlider";
+import MobileStickyCTA from "./MobileStickyCTA";
 import NavbarClient from "./NavbarClient";
 
 const APP_URL = process.env["NEXT_PUBLIC_APP_URL"] ?? "https://reunio.app";
@@ -938,18 +939,6 @@ function Footer() {
 // PAGE
 // ─────────────────────────────────────────────
 
-function MobileStickyCTA() {
-  return (
-    <div className="md:hidden fixed bottom-0 inset-x-0 z-50 p-4 bg-background/90 backdrop-blur border-t">
-      <Link href="/register" className="block">
-        <button className="w-full py-4 rounded-2xl font-bold text-base text-white flex items-center justify-center gap-2" style={{ backgroundColor: "#7B4FE8" }}>
-          Crear mi cuenta gratis <ArrowRight className="w-5 h-5" />
-        </button>
-      </Link>
-      <p className="text-center text-xs text-muted-foreground mt-2">Sin tarjeta · Gratis para siempre en el plan básico</p>
-    </div>
-  );
-}
 
 export default function LandingPage() {
   return (
