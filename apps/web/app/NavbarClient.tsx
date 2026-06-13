@@ -20,6 +20,7 @@ export default function NavbarClient() {
       <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
         {/* Logo */}
         <Link href="/" className="font-bold text-xl tracking-tight flex items-center gap-2">
+          <img src="/favicon.svg" alt="" className="w-7 h-7 rounded-lg" aria-hidden="true" />
           <span className="text-transparent bg-clip-text"
             style={{ backgroundImage: "linear-gradient(135deg, #C060D4, #7B4FE8, #4B5CF0)" }}>
             Reunio

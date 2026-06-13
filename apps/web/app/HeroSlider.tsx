@@ -7,6 +7,13 @@ import { Button } from "@/components/ui/button";
 
 const SLIDES = [
   {
+    img: "https://images.unsplash.com/photo-1596526131083-e8c633c948d2?w=1600&q=80&auto=format&fit=crop",
+    rubro: "Para cualquier negocio",
+    headline: "Dejá de coordinar\nturnos por WhatsApp.",
+    sub: "Tus clientes reservan solos. Vos solo abrís la agenda.",
+    accent: true,
+  },
+  {
     img: "https://images.unsplash.com/photo-1521590832167-7bcbfaa6381f?w=1600&q=80&auto=format&fit=crop",
     rubro: "Barberías & Peluquerías",
     headline: "Tus clientes\nreservan solos.",
@@ -77,7 +84,7 @@ export default function HeroSlider() {
             className="w-full h-full object-cover"
           />
           {/* Gradient overlay */}
-          <div className="absolute inset-0 bg-gradient-to-r from-black/75 via-black/50 to-black/20" />
+          <div className={`absolute inset-0 ${s.accent ? "bg-gradient-to-br from-black/90 via-black/70 to-black/40" : "bg-gradient-to-r from-black/75 via-black/50 to-black/20"}`} />
         </div>
       ))}
 
@@ -98,7 +105,9 @@ export default function HeroSlider() {
           className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold text-white leading-[1.05] mb-5 whitespace-pre-line drop-shadow-lg"
           style={{ animation: "fadeSlideUp 0.55s ease forwards" }}
         >
-          {slide.headline}
+          {slide.accent
+            ? <>Dejá de coordinar<br /><span>turnos por </span><span style={{ color: "#25D366" }}>WhatsApp.</span></>
+            : slide.headline}
         </h1>
 
         {/* Sub */}

@@ -939,16 +939,13 @@ function Footer() {
 
 function MobileStickyCTA() {
   return (
-    <div className="md:hidden fixed bottom-0 inset-x-0 z-50 p-4 bg-background/80 backdrop-blur border-t">
+    <div className="md:hidden fixed bottom-0 inset-x-0 z-50 p-4 border-t" style={{ backgroundColor: "#1a1a2e" }}>
       <Link href="/register" className="block">
-        <button
-          className="w-full py-4 rounded-2xl font-bold text-base text-white flex items-center justify-center gap-2"
-          style={{ background: "linear-gradient(135deg, #C060D4, #7B4FE8, #4B5CF0)", boxShadow: "0 4px 24px rgba(123,79,232,0.4)" }}
-        >
+        <button className="w-full py-4 rounded-2xl font-bold text-base bg-white text-gray-900 flex items-center justify-center gap-2">
           Crear mi cuenta gratis <ArrowRight className="w-5 h-5" />
         </button>
       </Link>
-      <p className="text-center text-xs text-muted-foreground mt-2">Sin tarjeta · Gratis para siempre en el plan básico</p>
+      <p className="text-center text-xs mt-2" style={{ color: "rgba(255,255,255,0.45)" }}>Sin tarjeta · Gratis para siempre en el plan básico</p>
     </div>
   );
 }
