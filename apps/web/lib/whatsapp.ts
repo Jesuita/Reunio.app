@@ -212,6 +212,35 @@ export async function sendWhatsAppReminder(ctx: ReminderContext): Promise<void> 
   }
 }
 
+// ── Immediate booking confirmation (fire-and-forget) ─────────────────────────
+export async function sendBookingConfirmationWA(params: {
+  phone: string;
+  clientName: string;
+  serviceName: string;
+  staffName: string;
+  startsAt: Date;
+  orgName: string;
+  orgAddress?: string;
+  timezone: string;
+  manageUrl: string;
+}): Promise<void> {
+  const phone = params.phone.replace(/\D/g, "");
+  const date  = formatDate(params.startsAt, params.timezone);
+  const time  = formatTime(params.startsAt, params.timezone);
+
+  const text =
+    `✅ *Turno confirmado en ${params.orgName}*\n\n` +
+    `Hola ${params.clientName}!\n\n` +
+    `📋 *Servicio:* ${params.serviceName}\n` +
+    `👤 *Con:* ${params.staffName}\n` +
+    `📅 *Fecha:* ${date}\n` +
+    `🕐 *Hora:* ${time} hs\n` +
+    (params.orgAddress ? `📍 *Dirección:* ${params.orgAddress}\n` : "") +
+    `\nPodés consultar o cancelar tu turno en:\n${params.manageUrl}`;
+
+  await sendText(phone, text);
+}
+
 // ── Webhook verification ──────────────────────────────────────────────────────
 export function verifyWhatsAppSignature(
   xHubSignature: string | null,

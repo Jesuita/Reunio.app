@@ -6,6 +6,8 @@ import { computeAvailableSlots } from "@/lib/availability/engine";
 import { signBookingToken, buildManageUrl } from "@/lib/booking-token";
 import { createDepositPreference } from "@/lib/mercadopago";
 import { scheduleReminders } from "@/lib/reminders";
+import { sendBookingConfirmationEmail } from "@/lib/email";
+import { sendBookingConfirmationWA } from "@/lib/whatsapp";
 import {
   fetchOrganization,
   fetchService,
@@ -167,6 +169,33 @@ export async function POST(req: NextRequest) {
     const manageToken = await signBookingToken(booking.id, organizationId);
     const baseUrl = process.env["NEXT_PUBLIC_APP_URL"] ?? "http://localhost:8000";
     const manageUrl = buildManageUrl(baseUrl, manageToken);
+
+    // ── 6b. Send immediate confirmation (fire-and-forget) ─────────────────
+    if (bookingStatus === "confirmed") {
+      // Fetch human-readable fields not loaded by the availability queries
+      const [{ data: orgMeta }, { data: svcMeta }] = await Promise.all([
+        sb.from("organizations").select("name, address").eq("id", organizationId).single(),
+        sb.from("services").select("name").eq("id", serviceId).single(),
+      ]);
+      const confirmParams = {
+        clientName:  client.name,
+        serviceName: svcMeta?.name ?? "Servicio",
+        staffName:   staffList[0]?.name ?? "",
+        startsAt,
+        orgName:     orgMeta?.name ?? "Negocio",
+        orgAddress:  (orgMeta?.address as string | null) ?? undefined,
+        timezone:    organization.timezone,
+        manageUrl,
+      };
+      void sendBookingConfirmationWA({ phone: client.phone, ...confirmParams }).catch(
+        (e) => console.error("[bookings] WA confirmation error:", e),
+      );
+      if (client.email) {
+        void sendBookingConfirmationEmail({ to: client.email, ...confirmParams }).catch(
+          (e) => console.error("[bookings] email confirmation error:", e),
+        );
+      }
+    }
 
     // ── 7. Mercado Pago payment URL if deposit required ───────────────────
     let paymentUrl: string | null = null;

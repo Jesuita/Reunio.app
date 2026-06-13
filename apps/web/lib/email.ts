@@ -118,6 +118,49 @@ export async function sendEmailReminder(ctx: ReminderContext) {
   }
 }
 
+export async function sendBookingConfirmationEmail(params: {
+  to: string;
+  clientName: string;
+  serviceName: string;
+  staffName: string;
+  startsAt: Date;
+  orgName: string;
+  orgAddress?: string;
+  timezone: string;
+  manageUrl: string;
+}) {
+  const date = formatDate(params.startsAt, params.timezone);
+  const time = formatTime(params.startsAt, params.timezone);
+
+  await sendEmail({
+    to:      params.to,
+    subject: `✓ Turno confirmado — ${params.serviceName} en ${params.orgName}`,
+    html: baseHtml(`
+      <h2 style="font-size:22px;margin:0 0 8px">¡Turno confirmado! ✓</h2>
+      <p style="color:#555;margin:0 0 24px">Hola <strong>${params.clientName}</strong>, tu turno está reservado.</p>
+
+      <div style="background:#f8f8f8;border-radius:8px;padding:20px;margin:0 0 24px">
+        <table style="width:100%;border-collapse:collapse">
+          <tr><td style="color:#888;padding:6px 0;font-size:14px;width:110px">Servicio</td><td style="font-weight:600;font-size:14px">${params.serviceName}</td></tr>
+          <tr><td style="color:#888;padding:6px 0;font-size:14px">Profesional</td><td style="font-weight:600;font-size:14px">${params.staffName}</td></tr>
+          <tr><td style="color:#888;padding:6px 0;font-size:14px">Fecha</td><td style="font-weight:600;font-size:14px;text-transform:capitalize">${date}</td></tr>
+          <tr><td style="color:#888;padding:6px 0;font-size:14px">Hora</td><td style="font-weight:600;font-size:14px">${time} hs</td></tr>
+          ${params.orgAddress ? `<tr><td style="color:#888;padding:6px 0;font-size:14px">Dirección</td><td style="font-weight:600;font-size:14px">${params.orgAddress}</td></tr>` : ""}
+        </table>
+      </div>
+
+      <a href="${params.manageUrl}"
+         style="display:inline-block;background:#1a1a2e;color:#fff;padding:14px 28px;border-radius:8px;text-decoration:none;font-weight:600;font-size:14px;margin-bottom:20px">
+        Ver o cancelar mi turno →
+      </a>
+
+      <p style="font-size:12px;color:#aaa;margin:0">
+        Este link es personal e intransferible. Guardalo para consultar tu turno en cualquier momento.
+      </p>
+    `, params.orgName),
+  });
+}
+
 export async function sendBookingCancelledEmail(params: {
   to: string;
   clientName: string;
