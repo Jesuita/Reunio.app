@@ -9,6 +9,8 @@ import Step4ClientData from "./components/Step4ClientData";
 import Step5Confirm from "./components/Step5Confirm";
 import Step6Success from "./components/Step6Success";
 
+import { countryFromTimezone } from "@/lib/country-from-timezone";
+
 interface Props {
   org: { id: string; name: string; slug: string; logoUrl: string | null; timezone: string };
   cancellationPolicy: { hours: number; text: string };
@@ -89,7 +91,7 @@ export default function BookingWizard({ org, cancellationPolicy, services, prese
         {step === 1 && <Step1Service services={mappedServices} />}
         {step === 2 && <Step2Staff />}
         {step === 3 && <Step3DateTime organizationId={org.id} timezone={org.timezone} />}
-        {step === 4 && <Step4ClientData policy={cancellationPolicy} orgName={org.name} />}
+        {step === 4 && <Step4ClientData policy={cancellationPolicy} orgName={org.name} defaultCountry={countryFromTimezone(org.timezone)} />}
         {step === 5 && <Step5Confirm organizationId={org.id} />}
         {step === 6 && <Step6Success slug={org.slug} />}
       </div>

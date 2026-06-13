@@ -1,5 +1,7 @@
 "use client";
 import { useState } from "react";
+import PhoneInput, { isValidPhoneNumber } from "react-phone-number-input";
+import "react-phone-number-input/style.css";
 import { ChevronLeft, X, FileText, Shield } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -16,15 +18,17 @@ interface Props {
     text: string;
   };
   orgName: string;
+  defaultCountry: string;
 }
 
-export default function Step4ClientData({ policy, orgName }: Props) {
+export default function Step4ClientData({ policy, orgName, defaultCountry }: Props) {
   const { client, setClient, setStep } = useBookingStore();
   const [modal, setModal] = useState<PolicyModal | null>(null);
 
+  const phoneValid = !!client.phone && isValidPhoneNumber(client.phone);
   const canContinue =
     client.name.trim().length > 0 &&
-    client.phone.trim().length >= 8 &&
+    phoneValid &&
     client.acceptsPolicy &&
     client.acceptsPrivacyPolicy;
 
@@ -54,13 +58,20 @@ export default function Step4ClientData({ policy, orgName }: Props) {
 
           <div className="space-y-1.5">
             <Label htmlFor="phone">Teléfono / WhatsApp <span className="text-destructive">*</span></Label>
-            <Input
+            <PhoneInput
               id="phone"
-              type="tel"
-              placeholder="Ej: +54 11 1234 5678"
+              // eslint-disable-next-line @typescript-eslint/no-explicit-any
+              defaultCountry={defaultCountry as any}
               value={client.phone}
-              onChange={(e) => setClient({ phone: e.target.value })}
+              onChange={(val: string | undefined) => setClient({ phone: val ?? "" })}
+              className="phone-input-wrapper"
+              numberInputProps={{ className: "phone-input-number" }}
+              international
+              countryCallingCodeEditable={false}
             />
+            {client.phone && !phoneValid && (
+              <p className="text-xs text-destructive">Número inválido para el país seleccionado.</p>
+            )}
             <p className="text-xs text-muted-foreground">Te enviaremos la confirmación por WhatsApp.</p>
           </div>
 

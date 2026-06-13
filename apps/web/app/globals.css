@@ -62,3 +62,61 @@
     text-wrap: balance;
   }
 }
+
+/* ── react-phone-number-input integration with shadcn/ui ── */
+.phone-input-wrapper {
+  display: flex;
+  align-items: center;
+  border: 1px solid hsl(var(--input));
+  border-radius: calc(var(--radius) - 2px);
+  background: hsl(var(--background));
+  padding: 0 12px;
+  height: 40px;
+  gap: 8px;
+  transition: box-shadow 0.15s;
+}
+
+.phone-input-wrapper:focus-within {
+  outline: none;
+  box-shadow: 0 0 0 2px hsl(var(--ring));
+}
+
+.phone-input-wrapper .PhoneInputCountry {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.phone-input-wrapper .PhoneInputCountrySelect {
+  position: absolute;
+  top: 0; left: 0;
+  height: 100%;
+  width: 100%;
+  z-index: 1;
+  border: 0;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.phone-input-wrapper .PhoneInputCountryIcon {
+  width: 24px;
+  height: 16px;
+  border-radius: 2px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.phone-input-number {
+  flex: 1;
+  border: none;
+  outline: none;
+  background: transparent;
+  font-size: 14px;
+  color: hsl(var(--foreground));
+  min-width: 0;
+}
+
+.phone-input-number::placeholder {
+  color: hsl(var(--muted-foreground));
+}
