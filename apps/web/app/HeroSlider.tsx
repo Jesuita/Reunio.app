@@ -12,36 +12,42 @@ const SLIDES = [
     headline: "Dejá de coordinar\nturnos por WhatsApp.",
     sub: "Tus clientes reservan solos. Vos solo abrís la agenda.",
     accent: true,
+    hw: "WhatsApp.", hc: "#25D366",
   },
   {
     img: "https://images.unsplash.com/photo-1521590832167-7bcbfaa6381f?w=1600&q=80&auto=format&fit=crop",
     rubro: "Barberías & Peluquerías",
     headline: "Tus clientes\nreservan solos.",
     sub: "24/7, sin llamadas ni mensajes.",
+    hw: "solos.", hc: "#7B4FE8",
   },
   {
     img: "https://images.unsplash.com/photo-1540555700478-4be289fbecef?w=1600&q=80&auto=format&fit=crop",
     rubro: "Spas & Centros de estética",
     headline: "Reducí ausencias\nhasta un 40%.",
     sub: "Recordatorios automáticos por WhatsApp.",
+    hw: "40%.", hc: "#FF6B6B",
   },
   {
     img: "https://images.unsplash.com/photo-1571019613454-1cb2f99b2d8b?w=1600&q=80&auto=format&fit=crop",
     rubro: "Entrenadores & Kinesiólogos",
     headline: "Cobrá señas\ncon Mercado Pago.",
     sub: "Garantizá la asistencia antes del turno.",
+    hw: "Mercado Pago.", hc: "#009EE3",
   },
   {
     img: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=1600&q=80&auto=format&fit=crop",
     rubro: "Psicólogos & Terapeutas",
     headline: "Tu agenda online\nen 5 minutos.",
     sub: "Sin configuraciones complejas ni contratos.",
+    hw: "5 minutos.", hc: "#F59E0B",
   },
   {
     img: "https://images.unsplash.com/photo-1556909114-f6e7ad7d3136?w=1600&q=80&auto=format&fit=crop",
     rubro: "Nutricionistas",
     headline: "Crecé sin\ncaos administrativo.",
     sub: "Panel de gestión, reportes y CRM incluidos.",
+    hw: "caos administrativo.", hc: "#FF6B6B",
   },
 ];
 
@@ -105,8 +111,12 @@ export default function HeroSlider() {
           className="text-4xl sm:text-5xl md:text-6xl lg:text-7xl font-extrabold text-white leading-[1.05] mb-5 whitespace-pre-line drop-shadow-lg"
           style={{ animation: "fadeSlideUp 0.55s ease forwards" }}
         >
-          {slide.accent
-            ? <>Dejá de coordinar<br /><span>turnos por </span><span style={{ color: "#25D366" }}>WhatsApp.</span></>
+          {slide.hw
+            ? slide.headline.split(slide.hw).flatMap((part, i, arr) =>
+                i < arr.length - 1
+                  ? [<span key={i}>{part.split("\n").map((l, j) => j > 0 ? <>{"\n"}{l}</> : l)}</span>, <span key={`h${i}`} style={{ color: slide.hc }}>{slide.hw}</span>]
+                  : [<span key={i}>{part.split("\n").map((l, j) => j > 0 ? <>{"\n"}{l}</> : l)}</span>]
+              )
             : slide.headline}
         </h1>
 
