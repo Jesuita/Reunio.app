@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { PLANS } from "@/lib/plans";
 import { RUBRO_CONFIG } from "@/lib/rubros";
 import HeroSlider from "./HeroSlider";
+import MobileHeroSlider from "./MobileHeroSlider";
 import NavbarClient from "./NavbarClient";
 
 const APP_URL = process.env["NEXT_PUBLIC_APP_URL"] ?? "https://reunio.app";
@@ -939,13 +940,13 @@ function Footer() {
 
 function MobileStickyCTA() {
   return (
-    <div className="md:hidden fixed bottom-0 inset-x-0 z-50 p-4 border-t" style={{ backgroundColor: "#1a1a2e" }}>
+    <div className="md:hidden fixed bottom-0 inset-x-0 z-50 p-4 bg-background/90 backdrop-blur border-t">
       <Link href="/register" className="block">
-        <button className="w-full py-4 rounded-2xl font-bold text-base bg-white text-gray-900 flex items-center justify-center gap-2">
+        <button className="w-full py-4 rounded-2xl font-bold text-base text-white flex items-center justify-center gap-2" style={{ backgroundColor: "#7B4FE8" }}>
           Crear mi cuenta gratis <ArrowRight className="w-5 h-5" />
         </button>
       </Link>
-      <p className="text-center text-xs mt-2" style={{ color: "rgba(255,255,255,0.45)" }}>Sin tarjeta · Gratis para siempre en el plan básico</p>
+      <p className="text-center text-xs text-muted-foreground mt-2">Sin tarjeta · Gratis para siempre en el plan básico</p>
     </div>
   );
 }
@@ -953,8 +954,17 @@ function MobileStickyCTA() {
 export default function LandingPage() {
   return (
     <div className="min-h-screen pb-28 md:pb-0">
-      <NavbarClient />
-      <HeroSlider />
+      {/* Mobile hero — full-screen premium slider */}
+      <div className="md:hidden">
+        <MobileHeroSlider />
+      </div>
+
+      {/* Desktop navbar + hero */}
+      <div className="hidden md:block">
+        <NavbarClient />
+        <HeroSlider />
+      </div>
+
       <MarqueeRubros />
       <Features />
       <HowItWorks />
