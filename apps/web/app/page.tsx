@@ -728,7 +728,7 @@ const PREVIEW_CARDS = [
 
 function DirectoryPreview() {
   return (
-    <section className="py-24 bg-background">
+    <section className="hidden md:block py-24 bg-background">
       <div className="max-w-6xl mx-auto px-4">
         <div className="text-center mb-14">
           <span className="text-xs font-semibold uppercase tracking-widest text-primary">Directorio</span>
@@ -801,7 +801,7 @@ function CTA() {
     <section className="relative py-32 overflow-hidden bg-[#0a0a0a]">
       {/* Glow blobs */}
       <div className="absolute top-0 left-1/2 -translate-x-1/2 w-[600px] h-[400px] rounded-full opacity-20 blur-[120px] pointer-events-none"
-        style={{ background: "radial-gradient(ellipse, #6366f1 0%, #a855f7 50%, transparent 100%)" }} />
+        style={{ background: "radial-gradient(ellipse, #C060D4 0%, #7B4FE8 50%, transparent 100%)" }} />
       <div className="absolute bottom-0 left-1/4 w-[300px] h-[300px] rounded-full opacity-10 blur-[80px] pointer-events-none bg-blue-500" />
       <div className="absolute bottom-0 right-1/4 w-[300px] h-[300px] rounded-full opacity-10 blur-[80px] pointer-events-none bg-purple-500" />
 
@@ -814,7 +814,7 @@ function CTA() {
         {/* Headline */}
         <h2 className="text-4xl sm:text-5xl md:text-6xl font-black text-white leading-[1.05] mb-6">
           Tus clientes ya están<br />
-          <span className="text-transparent bg-clip-text bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400">
+          <span className="text-transparent bg-clip-text" style={{ backgroundImage: "linear-gradient(135deg, #C060D4, #7B4FE8, #4B5CF0)" }}>
             buscando reservar online.
           </span>
         </h2>
@@ -827,7 +827,7 @@ function CTA() {
         <div className="flex flex-col sm:flex-row gap-4 justify-center mb-10">
           <Link href="/register">
             <button className="inline-flex items-center gap-2.5 px-10 py-4 rounded-2xl font-bold text-base text-white transition-all hover:scale-105 active:scale-95"
-              style={{ background: "linear-gradient(135deg, #6366f1, #a855f7)", boxShadow: "0 0 40px rgba(99,102,241,0.4), 0 4px 20px rgba(0,0,0,0.4)" }}>
+              style={{ background: "linear-gradient(135deg, #C060D4, #7B4FE8, #4B5CF0)", boxShadow: "0 0 40px rgba(123,79,232,0.45), 0 4px 20px rgba(0,0,0,0.4)" }}>
               Crear mi cuenta gratis <ArrowRight className="w-5 h-5" />
             </button>
           </Link>
@@ -937,9 +937,25 @@ function Footer() {
 // PAGE
 // ─────────────────────────────────────────────
 
+function MobileStickyCTA() {
+  return (
+    <div className="md:hidden fixed bottom-0 inset-x-0 z-50 p-4 bg-background/80 backdrop-blur border-t">
+      <Link href="/register" className="block">
+        <button
+          className="w-full py-4 rounded-2xl font-bold text-base text-white flex items-center justify-center gap-2"
+          style={{ background: "linear-gradient(135deg, #C060D4, #7B4FE8, #4B5CF0)", boxShadow: "0 4px 24px rgba(123,79,232,0.4)" }}
+        >
+          Crear mi cuenta gratis <ArrowRight className="w-5 h-5" />
+        </button>
+      </Link>
+      <p className="text-center text-xs text-muted-foreground mt-2">Sin tarjeta · Gratis para siempre en el plan básico</p>
+    </div>
+  );
+}
+
 export default function LandingPage() {
   return (
-    <div className="min-h-screen">
+    <div className="min-h-screen pb-28 md:pb-0">
       <NavbarClient />
       <HeroSlider />
       <MarqueeRubros />
@@ -950,6 +966,7 @@ export default function LandingPage() {
       <DirectoryPreview />
       <CTA />
       <Footer />
+      <MobileStickyCTA />
     </div>
   );
 }

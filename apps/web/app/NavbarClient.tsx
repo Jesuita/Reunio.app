@@ -9,7 +9,7 @@ const NAV_LINKS = [
   { href: "#features", label: "Funciones" },
   { href: "#how",      label: "¿Cómo funciona?" },
   { href: "/pricing",  label: "Precios" },
-  { href: "/explorar", label: "Explorar negocios" },
+  { href: "/explorar", label: "Explorar negocios", desktopOnly: true },
 ];
 
 export default function NavbarClient() {
@@ -19,8 +19,11 @@ export default function NavbarClient() {
     <header className="sticky top-0 z-40 bg-background/90 backdrop-blur border-b">
       <div className="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
         {/* Logo */}
-        <Link href="/" className="font-bold text-xl tracking-tight">
-          Reunio
+        <Link href="/" className="font-bold text-xl tracking-tight flex items-center gap-2">
+          <span className="text-transparent bg-clip-text"
+            style={{ backgroundImage: "linear-gradient(135deg, #C060D4, #7B4FE8, #4B5CF0)" }}>
+            Reunio
+          </span>
         </Link>
 
         {/* Desktop nav */}
@@ -60,7 +63,7 @@ export default function NavbarClient() {
       {/* Mobile drawer */}
       {open && (
         <div className="md:hidden border-t bg-background/95 backdrop-blur px-4 py-4 space-y-1 shadow-lg">
-          {NAV_LINKS.map(({ href, label }) => (
+          {NAV_LINKS.filter(l => !l.desktopOnly).map(({ href, label }) => (
             <Link
               key={href}
               href={href}

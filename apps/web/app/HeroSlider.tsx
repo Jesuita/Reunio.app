@@ -112,7 +112,7 @@ export default function HeroSlider() {
 
         {/* CTAs */}
         <div className="flex flex-wrap gap-3">
-          <Link href="/register">
+          <Link href="/register" className="hidden sm:block">
             <Button size="lg" className="h-12 px-8 text-base gap-2 bg-white text-black hover:bg-white/90 font-semibold shadow-lg">
               Empezar gratis <ArrowRight className="w-4 h-4" />
             </Button>
@@ -124,7 +124,7 @@ export default function HeroSlider() {
           </Link>
         </div>
 
-        <p className="text-xs text-white/50 mt-4">
+        <p className="hidden sm:block text-xs text-white/50 mt-4">
           Sin tarjeta de crédito · Gratis para siempre en el plan básico
         </p>
       </div>

@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <defs>
+    <linearGradient id="g" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#C060D4"/>
+      <stop offset="50%" stop-color="#7B4FE8"/>
+      <stop offset="100%" stop-color="#4B5CF0"/>
+    </linearGradient>
+  </defs>
+  <!-- Outer ring with gap at bottom-right -->
+  <path d="M 50 8 A 42 42 0 1 1 85 72" stroke="url(#g)" stroke-width="7" fill="none" stroke-linecap="round"/>
+  <!-- Gap dot -->
+  <circle cx="88" cy="78" r="4.5" fill="url(#g)"/>
+  <!-- R letter -->
+  <path d="M 34 32 L 34 68 M 34 32 L 54 32 Q 66 32 66 44 Q 66 55 54 55 L 34 55 M 52 55 L 66 68"
+        stroke="url(#g)" stroke-width="7" fill="none" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>
