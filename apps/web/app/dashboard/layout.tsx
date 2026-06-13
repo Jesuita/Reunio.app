@@ -5,6 +5,7 @@ import { type PlanName } from "@/lib/plans";
 import LogoutButton from "./LogoutButton";
 import SidebarNav from "./SidebarNav";
 import TrialBanner from "./TrialBanner";
+import MobileSidebar from "./MobileSidebar";
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const user = await requireAuth();
@@ -24,8 +25,9 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
   return (
     <div className="flex min-h-screen bg-muted/30">
-      {/* Sidebar */}
-      <aside className="w-60 bg-background border-r flex flex-col shrink-0">
+
+      {/* Desktop sidebar — hidden on mobile */}
+      <aside className="hidden md:flex w-60 bg-background border-r flex-col shrink-0">
         <div className="h-16 flex items-center px-6 border-b">
           <span className="font-bold text-lg tracking-tight">Reunio</span>
           <span className="ml-2 text-xs text-muted-foreground font-medium">Admin</span>
@@ -49,10 +51,25 @@ export default async function DashboardLayout({ children }: { children: React.Re
       </aside>
 
       {/* Main */}
-      <main className="flex-1 overflow-auto">
+      <div className="flex-1 flex flex-col min-w-0">
+
+        {/* Mobile top bar */}
+        <header className="md:hidden flex items-center gap-3 h-14 px-4 bg-background border-b shrink-0">
+          <MobileSidebar
+            currentPlan={currentPlan}
+            email={user.email}
+            organizationSlug={user.organizationSlug}
+          />
+          <span className="font-bold text-base tracking-tight">Reunio</span>
+          <span className="text-xs text-muted-foreground font-medium">Admin</span>
+        </header>
+
         <TrialBanner daysLeft={daysLeft} />
-        {children}
-      </main>
+
+        <main className="flex-1 overflow-auto">
+          {children}
+        </main>
+      </div>
     </div>
   );
 }
