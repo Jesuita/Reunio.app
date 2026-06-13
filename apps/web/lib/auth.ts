@@ -34,8 +34,8 @@ export async function requireAuth(): Promise<SessionUser> {
     .single();
 
   if (!member) {
-    // User registered but hasn't completed onboarding
-    redirect("/register?step=2");
+    // Authenticated user with no org — must complete registration (Google OAuth flow)
+    redirect("/register?google=1");
   }
 
   const org = member.organizations as unknown as { id: string; slug: string } | null;
