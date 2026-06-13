@@ -117,66 +117,74 @@ export default async function DashboardPage() {
   const SOURCE_LABEL: Record<string, string> = { web: "Web", whatsapp: "WhatsApp", admin: "Admin" };
 
   return (
-    <div className="p-8 space-y-8">
+    <div className="p-4 md:p-8 space-y-4 md:space-y-8">
       {/* Header */}
-      <div>
+      <div className="hidden md:block">
         <h1 className="text-2xl font-bold">Resumen</h1>
         <p className="text-muted-foreground text-sm mt-1 capitalize">
           {now.toLocaleDateString("es-AR", { weekday: "long", year: "numeric", month: "long", day: "numeric" })}
         </p>
       </div>
 
+      {/* Mobile date header */}
+      <div className="md:hidden">
+        <p className="text-xs text-muted-foreground capitalize">
+          {now.toLocaleDateString("es-AR", { weekday: "long", day: "numeric", month: "long" })}
+        </p>
+        <h1 className="text-xl font-bold mt-0.5">Tu día de hoy</h1>
+      </div>
+
       {/* KPI cards */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <div className="bg-background rounded-xl border p-5">
-          <div className="inline-flex items-center justify-center w-10 h-10 rounded-lg mb-3 text-blue-600 bg-blue-50">
-            <Calendar className="w-5 h-5" />
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-4">
+        <div className="bg-background rounded-2xl border p-4 md:p-5">
+          <div className="inline-flex items-center justify-center w-9 h-9 rounded-xl mb-2 md:mb-3 text-blue-600 bg-blue-50">
+            <Calendar className="w-4 h-4 md:w-5 md:h-5" />
           </div>
-          <div className="text-2xl font-bold">{total}</div>
-          <div className="text-sm text-muted-foreground mt-0.5">Turnos hoy</div>
+          <div className="text-2xl md:text-3xl font-bold">{total}</div>
+          <div className="text-xs md:text-sm text-muted-foreground mt-0.5">Turnos hoy</div>
           <div className="text-xs text-muted-foreground mt-1">
-            {confirmed} confirmados · {pending} pendientes
+            {confirmed} confirm. · {pending} pend.
           </div>
         </div>
 
-        <div className="bg-background rounded-xl border p-5">
-          <div className="inline-flex items-center justify-center w-10 h-10 rounded-lg mb-3 text-green-600 bg-green-50">
-            <TrendingUp className="w-5 h-5" />
+        <div className="bg-background rounded-2xl border p-4 md:p-5">
+          <div className="inline-flex items-center justify-center w-9 h-9 rounded-xl mb-2 md:mb-3 text-green-600 bg-green-50">
+            <TrendingUp className="w-4 h-4 md:w-5 md:h-5" />
           </div>
-          <div className="text-2xl font-bold">{formatPrice(projectedRevenue)}</div>
-          <div className="text-sm text-muted-foreground mt-0.5">Ingresos proyectados</div>
-          <div className="text-xs text-muted-foreground mt-1">turnos de hoy</div>
+          <div className="text-xl md:text-3xl font-bold leading-tight">{formatPrice(projectedRevenue)}</div>
+          <div className="text-xs md:text-sm text-muted-foreground mt-0.5">Ingresos hoy</div>
+          <div className="text-xs text-muted-foreground mt-1">proyectados</div>
         </div>
 
-        <div className="bg-background rounded-xl border p-5">
-          <div className="inline-flex items-center justify-center w-10 h-10 rounded-lg mb-3 text-amber-600 bg-amber-50">
-            <Clock className="w-5 h-5" />
+        <div className="bg-background rounded-2xl border p-4 md:p-5">
+          <div className="inline-flex items-center justify-center w-9 h-9 rounded-xl mb-2 md:mb-3 text-amber-600 bg-amber-50">
+            <Clock className="w-4 h-4 md:w-5 md:h-5" />
           </div>
-          <div className="text-2xl font-bold">{occupancyPct}%</div>
-          <div className="text-sm text-muted-foreground mt-0.5">Ocupación hoy</div>
-          <div className="w-full bg-muted rounded-full h-1.5 mt-2">
+          <div className="text-2xl md:text-3xl font-bold">{occupancyPct}%</div>
+          <div className="text-xs md:text-sm text-muted-foreground mt-0.5">Ocupación</div>
+          <div className="w-full bg-muted rounded-full h-1 mt-2">
             <div
-              className="bg-amber-500 h-1.5 rounded-full transition-all"
+              className="bg-amber-500 h-1 rounded-full transition-all"
               style={{ width: `${Math.min(occupancyPct, 100)}%` }}
             />
           </div>
         </div>
 
-        <div className="bg-background rounded-xl border p-5">
-          <div className="inline-flex items-center justify-center w-10 h-10 rounded-lg mb-3 text-purple-600 bg-purple-50">
-            <Users className="w-5 h-5" />
+        <div className="bg-background rounded-2xl border p-4 md:p-5">
+          <div className="inline-flex items-center justify-center w-9 h-9 rounded-xl mb-2 md:mb-3 text-purple-600 bg-purple-50">
+            <Users className="w-4 h-4 md:w-5 md:h-5" />
           </div>
-          <div className="text-2xl font-bold">{staffCount ?? 0}</div>
-          <div className="text-sm text-muted-foreground mt-0.5">Personal activo</div>
+          <div className="text-2xl md:text-3xl font-bold">{staffCount ?? 0}</div>
+          <div className="text-xs md:text-sm text-muted-foreground mt-0.5">Personal</div>
           {nextBooking && (
             <div className="text-xs text-muted-foreground mt-1 truncate">
-              Próx: {formatTime(nextBooking.starts_at)} — {(nextBooking.clients as unknown as {name:string}|null)?.name}
+              Próx: {formatTime(nextBooking.starts_at)}
             </div>
           )}
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
         {/* Week bar chart */}
         <div className="bg-background rounded-xl border p-5 lg:col-span-1">
           <h2 className="text-sm font-semibold mb-4">Ocupación últimos 7 días</h2>
@@ -231,7 +239,7 @@ export default async function DashboardPage() {
         </div>
       </div>
 
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <div className="grid grid-cols-1 lg:grid-cols-3 gap-4 md:gap-6">
         {/* Recent bookings */}
         <div className="bg-background rounded-xl border p-5">
           <div className="flex items-center justify-between mb-3">

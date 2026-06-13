@@ -3,10 +3,33 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Menu, X } from "lucide-react";
+import { X, Lock, MoreHorizontal } from "lucide-react";
+import {
+  Calendar, Scissors, Users, LayoutDashboard, BookOpen,
+  UserSquare2, BarChart2, Settings, CreditCard, Code2, Tag,
+} from "lucide-react";
 import type { PlanName } from "@/lib/plans";
-import SidebarNav from "./SidebarNav";
 import LogoutButton from "./LogoutButton";
+import BottomNav from "./BottomNav";
+
+const PLAN_ORDER: PlanName[] = ["free", "starter", "pro", "business"];
+const PLAN_LABELS: Record<PlanName, string> = {
+  free: "Free", starter: "Starter", pro: "Pro", business: "Business",
+};
+
+const ALL_NAV_ITEMS = [
+  { href: "/dashboard",            label: "Resumen",     icon: LayoutDashboard },
+  { href: "/dashboard/calendar",   label: "Agenda",      icon: Calendar },
+  { href: "/dashboard/bookings",   label: "Turnos",      icon: BookOpen },
+  { href: "/dashboard/clients",    label: "Clientes",    icon: UserSquare2 },
+  { href: "/dashboard/services",   label: "Servicios",   icon: Scissors },
+  { href: "/dashboard/categories", label: "Categorías",  icon: Tag },
+  { href: "/dashboard/staff",      label: "Personal",    icon: Users },
+  { href: "/dashboard/reports",    label: "Reportes",    icon: BarChart2,  requiredPlan: "starter" as PlanName },
+  { href: "/dashboard/settings",   label: "Config",      icon: Settings },
+  { href: "/dashboard/billing",    label: "Facturación", icon: CreditCard },
+  { href: "/dashboard/widget",     label: "Widget",      icon: Code2,      requiredPlan: "pro" as PlanName },
+];
 
 interface Props {
   currentPlan: PlanName;
@@ -17,11 +40,9 @@ interface Props {
 export default function MobileSidebar({ currentPlan, email, organizationSlug }: Props) {
   const [open, setOpen] = useState(false);
   const pathname = usePathname();
+  const currentIdx = PLAN_ORDER.indexOf(currentPlan);
 
-  // Close drawer on navigation
   useEffect(() => { setOpen(false); }, [pathname]);
-
-  // Prevent body scroll when open
   useEffect(() => {
     document.body.style.overflow = open ? "hidden" : "";
     return () => { document.body.style.overflow = ""; };
@@ -29,15 +50,7 @@ export default function MobileSidebar({ currentPlan, email, organizationSlug }: 
 
   return (
     <>
-      {/* Hamburger button — only visible on mobile */}
-      <button
-        type="button"
-        onClick={() => setOpen(true)}
-        className="md:hidden flex items-center justify-center w-10 h-10 rounded-md hover:bg-accent transition-colors"
-        aria-label="Abrir menú"
-      >
-        <Menu className="w-5 h-5" />
-      </button>
+      <BottomNav onMore={() => setOpen((v) => !v)} moreOpen={open} />
 
       {/* Overlay */}
       {open && (
@@ -47,43 +60,77 @@ export default function MobileSidebar({ currentPlan, email, organizationSlug }: 
         />
       )}
 
-      {/* Drawer */}
+      {/* Drawer from bottom */}
       <div className={`
-        fixed inset-y-0 left-0 z-50 w-72 bg-background border-r flex flex-col
-        transform transition-transform duration-200 ease-in-out md:hidden
-        ${open ? "translate-x-0" : "-translate-x-full"}
-      `}>
-        <div className="h-16 flex items-center justify-between px-6 border-b shrink-0">
-          <div className="flex items-center gap-2">
-            <span className="font-bold text-lg tracking-tight">Reunio</span>
-            <span className="text-xs text-muted-foreground font-medium">Admin</span>
+        fixed inset-x-0 bottom-0 z-50 bg-background rounded-t-2xl shadow-2xl
+        transform transition-transform duration-300 ease-out md:hidden
+        ${open ? "translate-y-0" : "translate-y-full"}
+      `}
+        style={{ maxHeight: "80vh" }}
+      >
+        {/* Handle */}
+        <div className="flex justify-center pt-3 pb-1">
+          <div className="w-10 h-1 rounded-full bg-muted-foreground/30" />
+        </div>
+
+        {/* Header */}
+        <div className="flex items-center justify-between px-5 py-3 border-b">
+          <div>
+            <p className="text-sm font-semibold">Menú</p>
+            <p className="text-xs text-muted-foreground truncate max-w-[200px]">{email}</p>
           </div>
           <button
             type="button"
             onClick={() => setOpen(false)}
-            className="flex items-center justify-center w-8 h-8 rounded-md hover:bg-accent transition-colors"
-            aria-label="Cerrar menú"
+            className="w-8 h-8 flex items-center justify-center rounded-full hover:bg-accent transition-colors"
           >
             <X className="w-4 h-4" />
           </button>
         </div>
 
-        <div className="flex-1 overflow-y-auto">
-          <SidebarNav currentPlan={currentPlan} />
+        {/* Nav items */}
+        <div className="overflow-y-auto py-2" style={{ maxHeight: "calc(80vh - 130px)" }}>
+          {ALL_NAV_ITEMS.map(({ href, label, icon: Icon, requiredPlan }) => {
+            const isActive =
+              href === "/dashboard" ? pathname === "/dashboard" : pathname.startsWith(href);
+            const requiredIdx = requiredPlan ? PLAN_ORDER.indexOf(requiredPlan) : -1;
+            const isLocked = requiredIdx > currentIdx;
+
+            return (
+              <Link
+                key={href}
+                href={href}
+                className={`flex items-center gap-4 px-5 py-3.5 transition-colors ${
+                  isActive
+                    ? "bg-primary/8 text-primary"
+                    : isLocked
+                      ? "text-muted-foreground/40"
+                      : "text-foreground hover:bg-accent"
+                }`}
+              >
+                <Icon className="w-5 h-5 shrink-0" />
+                <span className="flex-1 text-sm font-medium">{label}</span>
+                {isLocked && (
+                  <span className="flex items-center gap-1 text-[10px] font-medium text-muted-foreground/60 bg-muted rounded px-1.5 py-0.5">
+                    <Lock className="w-2.5 h-2.5" />
+                    {PLAN_LABELS[requiredPlan!]}
+                  </span>
+                )}
+              </Link>
+            );
+          })}
         </div>
 
-        <div className="p-4 border-t space-y-2 shrink-0">
-          <p className="text-xs text-muted-foreground truncate px-1">{email}</p>
-          <div className="flex items-center justify-between">
-            <Link
-              href={`/${organizationSlug}`}
-              className="text-xs text-muted-foreground hover:text-foreground transition-colors"
-              target="_blank"
-            >
-              Ver página ↗
-            </Link>
-            <LogoutButton />
-          </div>
+        {/* Footer */}
+        <div className="border-t px-5 py-3 flex items-center justify-between">
+          <Link
+            href={`/${organizationSlug}`}
+            target="_blank"
+            className="text-sm text-primary font-medium"
+          >
+            Ver mi página ↗
+          </Link>
+          <LogoutButton />
         </div>
       </div>
     </>
