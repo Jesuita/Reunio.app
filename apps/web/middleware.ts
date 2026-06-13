@@ -59,7 +59,9 @@ export async function middleware(req: NextRequest) {
   }
 
   // Redirect authenticated users away from auth pages
-  if ((pathname === "/login" || pathname === "/register") && user) {
+  // Exception: /register?google=1 — new Google user completing business setup
+  const isGoogleRegistration = pathname === "/register" && searchParams.get("google") === "1";
+  if ((pathname === "/login" || pathname === "/register") && user && !isGoogleRegistration) {
     // Platform admins van a /admin, el resto al dashboard del negocio
     const isPlatformAdmin =
       (user.app_metadata as Record<string, unknown> | undefined)?.["is_platform_admin"] === true;
