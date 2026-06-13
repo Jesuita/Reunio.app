@@ -117,11 +117,6 @@ export default function HeroSlider() {
               Empezar gratis <ArrowRight className="w-4 h-4" />
             </Button>
           </Link>
-          <Link href="/el-corte-perfecto">
-            <Button size="lg" variant="outline" className="h-12 px-8 text-base border-white bg-white/15 text-white hover:bg-white hover:text-black backdrop-blur-sm font-semibold">
-              Ver demo en vivo →
-            </Button>
-          </Link>
         </div>
 
         <p className="hidden sm:block text-xs text-white/50 mt-4">
