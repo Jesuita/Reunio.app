@@ -313,7 +313,7 @@ export default function ManageBookingClient({
               <p className="text-sm font-semibold">Guardá este link</p>
               <p className="text-xs text-muted-foreground mt-0.5">
                 Podés volver a consultar o cancelar tu turno desde acá en cualquier momento.
-                También lo recibiste por WhatsApp y email.
+                También lo recibiste por WhatsApp y email, y lo vas a ver en la página del negocio cuando vuelvas a visitarla.
               </p>
             </div>
             <button
