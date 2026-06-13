@@ -1,4 +1,5 @@
 "use client";
+import { useEffect } from "react";
 import Link from "next/link";
 import { CheckCircle2, MessageCircle, Calendar, XCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -18,8 +19,43 @@ function buildGoogleCalendarUrl(startsAt: string, endsAt: string, title: string,
   return `https://calendar.google.com/calendar/render?${params}`;
 }
 
+export type StoredBooking = {
+  token: string;
+  manageUrl: string;
+  startsAt: string;
+  endsAt: string;
+  serviceName: string;
+  staffName: string;
+};
+
+function saveBookingToLocalStorage(slug: string, entry: StoredBooking) {
+  try {
+    const key = `reunio:bookings:${slug}`;
+    const existing: StoredBooking[] = JSON.parse(localStorage.getItem(key) ?? "[]");
+    // Avoid duplicates by token
+    const deduped = existing.filter((b) => b.token !== entry.token);
+    localStorage.setItem(key, JSON.stringify([entry, ...deduped].slice(0, 10)));
+  } catch { /* localStorage not available */ }
+}
+
 export default function Step6Success({ slug }: { slug: string }) {
   const { service, selectedSlot, manageUrl, reset } = useBookingStore();
+
+  // Persist booking to localStorage so the public page can show it
+  useEffect(() => {
+    if (manageUrl && service && selectedSlot) {
+      const token = manageUrl.split("/booking/manage/")[1] ?? "";
+      saveBookingToLocalStorage(slug, {
+        token,
+        manageUrl,
+        startsAt:    selectedSlot.startsAt,
+        endsAt:      selectedSlot.endsAt,
+        serviceName: service.name,
+        staffName:   selectedSlot.staffName ?? "",
+      });
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   const calendarUrl =
     service && selectedSlot

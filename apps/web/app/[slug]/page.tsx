@@ -8,6 +8,7 @@ import { getOrganizationBySlug, getServicesByOrganization } from "@/lib/organiza
 import { getRubroConfig } from "@/lib/rubros";
 import DbDown from "@/components/DbDown";
 import StaffServiceFilter from "./StaffServiceFilter";
+import MyBookingsBar from "./MyBookingsBar";
 
 interface Props {
   params: { slug: string };
@@ -120,6 +121,9 @@ export default async function OrganizationPage({ params }: Props) {
               </span>
             )}
           </div>
+
+          {/* My bookings bar (client-side, reads localStorage) */}
+          <MyBookingsBar slug={params.slug} />
 
           {/* Interactive: staff filter + services list */}
           <StaffServiceFilter
