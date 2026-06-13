@@ -327,20 +327,25 @@ export default function MobileHeroSlider() {
 
   return (
     <section className="relative flex flex-col bg-[#070710] overflow-hidden" style={{ height: "100svh" }}>
-      {/* Background photo — high opacity, visible */}
+      {/* Background photo — positioned top-right, high visibility */}
       {SLIDES.map((s, i) => (
         <div
           key={i}
-          className="absolute inset-0 bg-cover bg-center transition-opacity duration-700"
-          style={{ backgroundImage: `url(${s.img})`, opacity: i === current ? 0.65 : 0 }}
+          className="absolute inset-0 transition-opacity duration-700"
+          style={{
+            backgroundImage: `url(${s.img})`,
+            backgroundSize: "cover",
+            backgroundPosition: "top right",
+            opacity: i === current ? 0.85 : 0,
+          }}
         />
       ))}
-      {/* Gradient: protect text bottom-left, let photo show top-right */}
+      {/* Gradient: dark vignette bottom + left, photo visible top-right */}
       <div
         className="absolute inset-0"
-        style={{ background: "linear-gradient(120deg, #070710 38%, rgba(7,7,16,0.6) 62%, rgba(7,7,16,0.1) 100%)" }}
+        style={{ background: "linear-gradient(115deg, #070710 30%, rgba(7,7,16,0.7) 55%, rgba(7,7,16,0.05) 100%)" }}
       />
-      <div className="absolute inset-0 bg-gradient-to-t from-[#070710] via-[#070710]/50 to-transparent" />
+      <div className="absolute inset-0 bg-gradient-to-t from-[#070710] via-[#070710]/70 to-transparent" />
 
       {/* Content */}
       <div className="relative z-10 flex flex-col h-full">
