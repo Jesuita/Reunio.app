@@ -19,7 +19,7 @@ export type BookingTokenPayload = JWTPayload & {
 export async function signBookingToken(
   bookingId: string,
   orgId: string,
-  expiresInHours = 72,
+  expiresInHours = 720, // 30 days
 ): Promise<string> {
   return new SignJWT({ bookingId, orgId })
     .setProtectedHeader({ alg: "HS256" })
